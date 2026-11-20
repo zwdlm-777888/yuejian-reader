@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>阅见</title>
+<meta name="theme-color" id="metaTheme" content="#cfe6d0">
+<link rel="icon" href="/favicon.ico">
+<style>
+  :root{
+    --bg:#cfe6d0;--card:#f7fbf4;--paper:#f2f8ec;--line:#d7e3d5;--ink:#22302a;--muted:#5e7263;
+    --brand:#2e7d54;--brand-d:#256b47;--chip:#e6efe4;
+    --panel:#eef5ea;--hover:#e9f4ea;--active:#d5ebd9;--btn:#fbfdf8;--btn-hover:#f0f6ec;
+    --mark:#ffe28a;--mark-active:#e8890c;
+    --pill-bg:#e2f0e4;--pill-fg:#1d5c38;--code:#f3f4f6;--split:#b9cdbc;
+    --ok-bg:#e9f7f0;--ok-fg:#0f7b5a;--ok-line:#bfe6d5;
+    --err-bg:#fdecea;--err-fg:#c0392b;--err-line:#f3c4bd;
+    --warn-bg:#fff8e6;--warn-fg:#7a5b12;--warn-line:#f0d999;
+  }
+  /* 主题：暗色（深灰底·青绿点缀·暖白字） */
+  html[data-theme="tavern"]{
+    --topbar:#15161a;--topbar-line:#2c2f34;
+    --bg:#1d1f23;--card:#282a2e;--paper:#232529;--line:#3d4045;--ink:#e8e4da;--muted:#a8adb3;
+    --brand:#45b8a5;--brand-d:#3aa392;--chip:#33363b;
+    --panel:#222428;--hover:#2f3338;--active:#3a4a45;--btn:#2e3136;--btn-hover:#3a3e44;
+    --mark:#6b5a1e;--mark-active:#c07b1f;
+    --pill-bg:#33373c;--pill-fg:#a9b8b0;--code:#33363b;--split:#4a4f56;
+    --ok-bg:#252c28;--ok-fg:#8fb8a5;--ok-line:#2e3a34;
+    --err-bg:#332522;--err-fg:#d99a90;--err-line:#4a322e;
+    --warn-bg:#2e2a1e;--warn-fg:#c9a55e;--warn-line:#463d28;
+  }
+  /* 主题：酒馆（照 SillyTavern 界面：深藏青底·橙粉点缀） */
+  html[data-theme="sillytavern"]{
+    --topbar:#2b2d31;--topbar-line:#2b2d31;
+    --bg:#2a3142;--card:#2c3444;--paper:#242736;--line:#3a4152;--ink:#e8e5e0;--muted:#9a98a8;
+    --brand:#b9705c;--brand-d:#a5624e;--chip:#30384a;
+    --panel:#2c3446;--hover:#303950;--active:#40343a;--btn:#2e3646;--btn-hover:#364050;
+    --mark:#6b4a2a;--mark-active:#c07b3f;
+    --pill-bg:#3a2f2e;--pill-fg:#e2a48d;--code:#30384a;--split:#475062;
+    --ok-bg:#343f52;--ok-fg:#c9ccd4;--ok-line:#434e62;
+    --err-bg:#343f52;--err-fg:#c9ccd4;--err-line:#434e62;
+    --warn-bg:#343f52;--warn-fg:#c9ccd4;--warn-line:#434e62;
+  }
+  /* 酒馆主题专属：正文文字暖棕（东哥指定 R158/G112/B84）、目录文字压暗 */
+  html[data-theme="sillytavern"] .content .body{color:#ab7060}
+  html[data-theme="sillytavern"] .content h3{color:#ab7060}
+  html[data-theme="sillytavern"] .chap{color:#c2bfcb}
+  html[data-theme="sillytavern"] .msg{color:#c9ccd4;font-weight:600}
+  /* 主题：羊皮纸（米黄仿旧） */
+  html[data-theme="parchment"]{
+    --bg:#e6dabf;--card:#f4ead2;--paper:#faf3e0;--line:#d6c69e;--ink:#46392a;--muted:#8a7a5e;
+    --brand:#8b5e34;--brand-d:#774e2b;--chip:#e8dcbe;
+    --panel:#efe4c8;--hover:#ecdfbd;--active:#e3d2a6;--btn:#f7efdb;--btn-hover:#efe4c8;
+    --mark:#f0d17c;--mark-active:#d9a53f;
+    --pill-bg:#ecdfbd;--pill-fg:#6b4f2a;--code:#eee2c4;--split:#c2b184;
+    --ok-bg:#e8e6c9;--ok-fg:#5f6b2a;--ok-line:#c9c58e;
+    --err-bg:#f0d3c8;--err-fg:#8f3b26;--err-line:#d9a893;
+    --warn-bg:#f2e3bb;--warn-fg:#8a6a1f;--warn-line:#dcc98a;
+  }
+  /* 主题：纯白（极简黑白灰） */
+  html[data-theme="white"]{
+    --bg:#f2f3f5;--card:#ffffff;--paper:#ffffff;--line:#dde1e6;--ink:#22272e;--muted:#6b7480;
+    --brand:#2e6f8e;--brand-d:#255d78;--chip:#e9edf1;
+    --panel:#f4f6f8;--hover:#eef2f5;--active:#dfeaf0;--btn:#ffffff;--btn-hover:#eef2f5;
+    --mark:#ffe9a8;--mark-active:#f0a92e;
+    --pill-bg:#e9edf1;--pill-fg:#3c4a58;--code:#eef1f4;--split:#c4cbd3;
+    --ok-bg:#e8f4ee;--ok-fg:#1c7a52;--ok-line:#bfe0d1;
+    --err-bg:#fdeceb;--err-fg:#c0392b;--err-line:#f3c4bd;
+    --warn-bg:#fff6e0;--warn-fg:#8a6d1a;--warn-line:#ecd9a0;
+  }
+  *{box-sizing:border-box}
+  /* 整页锁死一屏：外层不再出滚动条，只有书架/章节/正文三处内滚 */
+  html,body{height:100%;overflow:hidden}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;font-size:14px;line-height:1.6}
+  .wrap{height:100%;display:flex;flex-direction:column;padding:10px 14px;gap:8px;min-height:0}
+  h1{font-size:18px;margin:0;font-weight:600;display:flex;align-items:center;gap:8px;flex:0 0 auto;background:var(--topbar,transparent);border:1px solid var(--topbar-line,transparent);border-radius:10px;padding:7px 14px}
+  .ver{font-size:11px;font-weight:400;opacity:.6;white-space:nowrap}
+  .pill{font-size:11.5px;background:var(--pill-bg);color:var(--pill-fg);border-radius:20px;padding:2px 9px;font-weight:400}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;flex:0 0 auto}
+  .row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+  input[type=text]{flex:1;min-width:240px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-size:14px;background:var(--btn);color:var(--ink)}
+  button{border:1px solid var(--line);background:var(--btn);color:var(--ink);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px}
+  button:hover{background:var(--btn-hover);border-color:var(--split)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .primary{background:var(--brand);border-color:var(--brand);color:#fff}
+  .primary:hover{background:var(--brand-d);border-color:var(--brand-d)}
+  .msg{padding:7px 12px;border-radius:8px;font-size:12.5px;margin-top:7px;display:none}
+  .msg.ok{display:block;background:var(--ok-bg);color:var(--ok-fg);border:1px solid var(--ok-line)}
+  .msg.err{display:block;background:var(--err-bg);color:var(--err-fg);border:1px solid var(--err-line)}
+  .msg.warn{display:block;background:var(--warn-bg);color:var(--warn-fg);border:1px solid var(--warn-line)}
+  /* 主区：书架 | 拖拽条 | 阅读面板，占满剩余高度 */
+  .layout{flex:1;display:flex;min-height:0}
+  .pane{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;min-height:0}
+  .pane.shelf{flex:0 0 auto;width:300px;min-width:140px}
+  .pane.right{flex:1;min-width:0}
+  .pane h2{font-size:14px;margin:0;padding:9px 14px;background:var(--panel);border-bottom:1px solid var(--line);font-weight:600;display:flex;align-items:center;gap:8px;flex:0 0 auto;white-space:nowrap;overflow:hidden}
+  .pane h2 .sp{flex:1}
+  .mini{font-size:12px;padding:3px 9px;border:1px solid var(--line);border-radius:6px;background:var(--btn);cursor:pointer;color:var(--muted)}
+  .mini:hover{background:var(--panel);color:var(--ink)}
+  select.mini{padding:4px 7px;font-size:12px;color:var(--ink)}
+  .mini.speak{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600;padding:4px 12px}
+  .mini.speak:hover{background:var(--brand-d);border-color:var(--brand-d)}
+  /* 统一按钮色：浏览/章节/字号与「加载书架」同色；退出工具同色相、明度提亮 10% */
+  #btnBrowse,#btnToggleChap,#btnFont{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+  #btnBrowse:hover,#btnToggleChap:hover,#btnFont:hover{background:var(--brand-d);border-color:var(--brand-d)}
+  /* 退出工具：主色的补色（每主题硬编码，色环转 180°、明度饱和度同主色），背景由 applyTheme 按主题设置 */
+  #btnQuit{color:#fff;font-weight:600}
+  #btnQuit:hover{filter:brightness(1.1)}
+  #btnQuit:hover{background:var(--brand-d);border-color:var(--brand-d)}
+  .voice-state{font-size:12px;white-space:nowrap}
+  .pdfview{position:relative;flex:1;min-height:0;background:var(--card);display:flex;flex-direction:column}
+  .pdfview iframe{flex:1;border:0;display:block;background:#eef3ea;min-height:0}
+  .close-pdf{position:absolute;top:9px;right:12px;z-index:5;background:var(--btn);box-shadow:0 2px 8px rgba(0,0,0,.18);font-weight:600}
+  .list{flex:1;min-height:0;overflow:auto}
+  .item{padding:9px 13px;border-bottom:1px solid var(--line);cursor:pointer;display:flex;gap:8px;align-items:flex-start}
+  .item:hover{background:var(--hover)}
+  .item.active{background:var(--active)}
+  .item .nm{flex:1;word-break:break-all;font-size:13px}
+  .item .meta{font-size:11.5px;color:var(--muted)}
+  .ext{font-size:11px;padding:1px 7px;border-radius:5px;background:var(--chip);color:#374151;white-space:nowrap}
+  .ext.pdf{background:var(--err-bg);color:var(--err-fg)}
+  .ext.epub{background:var(--ok-bg);color:var(--ok-fg)}
+  /* 阅读：章节 | 拖拽条 | 正文 */
+  .reader{flex:1;display:flex;min-height:0}
+  .chapters{flex:0 0 auto;width:220px;min-width:120px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;min-height:0}
+  .chapters .h{font-size:12px;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--line);flex:0 0 auto}
+  .chapList{flex:1;min-height:0;overflow:auto}
+  .chap{padding:7px 12px;font-size:13px;color:var(--ink);cursor:pointer;border-bottom:1px solid var(--line);word-break:break-all}
+  .chap:hover{background:var(--hover)}
+  .chap.active{background:var(--active);color:var(--brand-d)}
+  .content{flex:1;min-width:0;min-height:0;overflow:auto;background:var(--paper);padding:22px 36px}
+  .contentWrap{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0;position:relative}
+  .searchbar{display:flex;gap:6px;align-items:center;padding:6px 14px;background:var(--panel);border-bottom:1px solid var(--line);flex:0 0 auto}
+  .searchbar input{flex:1;min-width:0;padding:5px 10px;border:1px solid var(--line);border-radius:7px;font-size:13px;background:var(--btn);color:var(--ink)}
+  .content mark{background:var(--mark);color:inherit;padding:0;border-radius:2px}
+  .content mark.active{background:var(--mark-active);color:#fff}
+  .content h3{font-size:18px;margin:0 0 16px;padding-bottom:12px;border-bottom:2px solid var(--line)}
+  .content .body{white-space:pre-wrap;font-size:16px;line-height:2.1;color:var(--ink);letter-spacing:.3px;max-width:900px}
+  /* 滚动条：细、低调，跟主题走，不刺眼 */
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:var(--split);border-radius:6px;border:2px solid transparent;background-clip:content-box}
+  ::-webkit-scrollbar-thumb:hover{background:var(--muted);border:2px solid transparent;background-clip:content-box}
+  ::-webkit-scrollbar-corner{background:transparent}
+  .content .body.small{font-size:13px;line-height:1.9}
+  .content .body.large{font-size:19px;line-height:2.2}
+  /* 首开引导页（README 渲染成正文） */
+  .guideBody{max-width:900px;font-size:15px;line-height:1.9;white-space:normal}
+  .guideBody .g-h2{font-size:16px;font-weight:600;margin:22px 0 10px;color:var(--brand-d);border-bottom:1px solid var(--line);padding-bottom:6px}
+  .guideBody .g-h3{font-size:14px;font-weight:600;margin:16px 0 8px}
+  .guideBody .g-p{margin:8px 0}
+  .guideBody .g-li{margin:5px 0 5px 14px}
+  .guideBody .g-hr{border:0;border-top:1px dashed var(--line);margin:16px 0}
+  .guideBody .g-table{border-collapse:collapse;margin:10px 0;width:100%;max-width:720px}
+  .guideBody .g-table th,.guideBody .g-table td{border:1px solid var(--line);padding:5px 10px;font-size:13px;text-align:left}
+  .guideBody .g-table th{background:var(--panel)}
+  .empty{color:var(--muted);text-align:center;padding:80px 20px;font-size:13px}
+  audio{width:300px;height:32px;flex:0 0 auto}
+  #btnStop.hidden,audio.hidden{display:none}
+  .hint{font-size:12px;color:var(--muted)}
+  code{background:var(--code);padding:1px 6px;border-radius:4px;font-size:12px}
+  .hidden{display:none}
+  /* 可拖拽竖分割条：鼠标停上出现左右箭头光标，按住可调宽 */
+  .vsplit{flex:0 0 7px;cursor:col-resize;background:transparent;border-radius:4px;position:relative;z-index:3}
+  .vsplit:hover,.vsplit.dragging{background:var(--split)}
+  .vsplit::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:3px;height:34px;border-radius:3px;background:var(--split);opacity:.8}
+  .vsplit:hover::after,.vsplit.dragging::after{background:var(--brand)}
+  /* 翻页按钮：浮在正文右下角，半透明不挡字 */
+  .pagebtn{position:absolute;right:14px;bottom:14px;z-index:4;width:38px;height:38px;font-size:20px;line-height:1;
+    padding:0;border-radius:50%;opacity:.55;background:var(--btn);color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.15)}
+  .pagebtn:hover{opacity:1}
+  #pgPrev{right:58px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>阅见<span class="ver">v5.0</span><span class="pill">本地运行 · 只认文字 · 图片不朗读</span><span id="voiceState" class="voice-state" style="font-weight:400"></span><span class="sp" style="flex:1"></span><select id="theme" class="mini" title="界面主题">
+      <option value="">豆沙绿（护眼）</option>
+      <option value="tavern">暗色主题</option>
+      <option value="sillytavern">酒馆主题</option>      <option value="parchment">羊皮纸</option>
+      <option value="white">纯白极简</option>
+    </select><button id="btnPaper" class="mini" title="给正文选一张底纹图片（按当前主题记忆）">底纹</button><input id="paperDim" class="mini" type="range" min="0" max="90" value="35" title="底纹遮罩浓度：压住图片让文字可读" style="width:72px;vertical-align:middle"><button id="btnClearPaper" class="mini" title="清除当前主题的底纹图片" style="display:none">×</button></h1>
+  <div class="row" style="align-items:flex-start">
+    <div id="scanMsg" class="msg" style="flex:1;margin-top:0;min-width:0"></div>
+    <div id="ttsMsg" class="msg" style="flex:1;margin-top:0;min-width:0"></div>
+  </div>
+
+  <div class="layout" id="layout">
+    <div class="pane shelf" id="shelfPane">
+      <h2><button class="mini" id="btnToggleShelf" title="收起/展开书架" style="flex:0 0 auto">◧</button><span style="font-weight:600">书架</span><span id="bookCount" class="hint" style="font-weight:400"></span></h2>
+      <div class="list" id="bookList"><div class="empty">加载文件夹后，书会出现在这里</div></div>
+    </div>
+    <div class="vsplit" id="splitShelf" title="拖动调整书架宽度"></div>
+    <button id="btnOpenShelf" class="mini" title="展开书架" style="display:none;flex:0 0 auto;align-self:flex-start;margin:0">»</button>
+    <div class="pane right">
+      <h2>阅读 <span id="readerTitle" class="hint" style="font-weight:400"></span><span class="sp"></span><select id="rate" class="mini" title="朗读语速">
+          <option value="0.6">0.6倍</option><option value="0.8">0.8倍</option>
+          <option value="1.0" selected>1.0倍</option><option value="1.2">1.2倍</option>
+          <option value="1.4">1.4倍</option><option value="1.6">1.6倍</option>
+          <option value="1.8">1.8倍</option><option value="2.0">2.0倍</option>
+        </select><button id="btnSpeak" class="mini speak" title="用晓晓朗读当前章节">朗读本章</button><button id="btnStop" class="mini hidden" title="停止播放">停止</button><audio id="audio" class="hidden" controls></audio><button class="mini" id="btnToggleChap" title="收起/展开章节目录">章节</button><button class="mini" id="btnFont" title="切换字号">字号</button><button id="btnQuit" class="mini" title="立即退出并清空音频缓存（点 ✕ 关窗则保留缓存，下次朗读秒开）">清理并退出</button></h2>
+      <div class="reader" id="reader">
+        <div class="chapters" id="chapPane"><div class="h">章节目录</div><div class="chapList" id="chapList"><div class="empty" style="padding:40px 10px">选一章节</div></div></div>
+        <div class="vsplit" id="splitChap" title="拖动调整章节目录宽度"></div>
+        <div class="contentWrap">
+          <div class="searchbar">
+            <input id="searchInput" type="text" placeholder="在当前章节中搜索…" title="输入关键词，正文里高亮所有命中">
+            <span id="searchCount" class="hint" style="white-space:nowrap"></span>
+            <button id="btnPrevHit" class="mini" title="上一处（▲）">▲</button>
+            <button id="btnNextHit" class="mini" title="下一处（▼）">▼</button>
+            <button id="btnClearSearch" class="mini" title="清空搜索">✕</button>
+          </div>
+          <div class="content" id="content"><div class="empty">开始阅读</div></div>
+          <button id="pgPrev" class="pagebtn" title="上一屏（← 键）">‹</button><button id="pgNext" class="pagebtn" title="下一屏（→ 键）">›</button>
+        </div>
+      </div>
+      <div class="pdfview" id="pdfview" style="display:none">
+        <button id="btnClosePdf" class="mini close-pdf" title="关闭 PDF，回到文字阅读">✕ 关闭 PDF</button>
+        <iframe id="pdfFrame" title="PDF 阅读"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <input type="text" id="path" placeholder="粘贴读物文件夹，例如 D:\我的书">
+      <button id="btnBrowse">浏览</button>
+      <button class="primary" id="btnScan">加载书架</button><button class="primary" id="btnClearShelf" title="清空书架和阅读区画面（自动恢复记录保留，重启照旧回到上次读的书）">清除</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let books = [], curBook = null, chapters = [], curChap = 0;
+let fontLevel = 1;  // 0小 1中 2大
+
+// 收起/展开书架：开关按钮在栏头最左，不会被窄栏裁掉；收起后左缘留「»」重开按钮
+function setShelf(show){
+  $("shelfPane").style.display=show?"":"none";
+  $("splitShelf").style.display=show?"":"none";
+  $("btnOpenShelf").style.display=show?"none":"";
+}
+$("btnToggleShelf").onclick=()=>setShelf(false);
+$("btnOpenShelf").onclick=()=>setShelf(true);
+$("btnToggleChap").onclick=()=>{
+  const p=$("chapPane"),s=$("splitChap");
+  const hidden=p.style.display==="none";
+  p.style.display=hidden?"":"none";s.style.display=hidden?"":"none";
+};
+
+// 竖分割条拖拽：像资源管理器一样左右调宽，松手记住宽度
+function makeSplit(bar,pane,storeKey,minW){
+  let startX=0,startW=0,dragging=false;
+  bar.addEventListener("mousedown",e=>{
+    dragging=true;startX=e.clientX;startW=pane.getBoundingClientRect().width;
+    bar.classList.add("dragging");e.preventDefault();
+    document.body.style.cursor="col-resize";document.body.style.userSelect="none";
+  });
+  window.addEventListener("mousemove",e=>{
+    if(!dragging)return;
+    const w=Math.max(minW,startW+(e.clientX-startX));
+    pane.style.width=w+"px";pane.style.flexBasis=w+"px";
+  });
+  window.addEventListener("mouseup",()=>{
+    if(!dragging)return;
+    dragging=false;bar.classList.remove("dragging");
+    document.body.style.cursor="";document.body.style.userSelect="";
+    storeState({[storeKey]:Math.round(pane.getBoundingClientRect().width)});
+  });
+}
+makeSplit($("splitShelf"),$("shelfPane"),"shelf_w",140);
+makeSplit($("splitChap"),$("chapPane"),"chap_w",120);
+
+// 主题切换：换 html 的 data-theme，整套配色跟着变；选择记进 state.json
+const THEME_BAR={"":"#cfe6d0","tavern":"#15161a","sillytavern":"#2b2d31","parchment":"#e6dabf","white":"#f2f3f5"};
+// 各主题主色的精确补色（色环转 180°，明度饱和度同主色）：豆沙绿→绛紫、暗色→玫红、酒馆→青蓝、羊皮纸→靛蓝、纯白→赭橙
+const THEME_QC={"":"#7d2e57","tavern":"#b84558","sillytavern":"#5ca5b9","parchment":"#34618b","white":"#8e4d2e"};
+function applyTheme(t){
+  if(t) document.documentElement.setAttribute("data-theme",t);
+  else document.documentElement.removeAttribute("data-theme");
+  $("theme").value = t || "";
+  const m=document.getElementById("metaTheme");
+  if(m) m.content=(THEME_BAR[t||""]||"#cfe6d0");
+  const qc=THEME_QC[t||""]||"#7d2e57";   // 「清理并退出」按钮 = 主色补色
+  $("btnQuit").style.background=qc;
+  $("btnQuit").style.borderColor=qc;
+  applyPaper(t || "");
+}
+
+// 底纹自定义图片＋可调遮罩：每个主题各配各的图，记进 state.json 的 paper 字段
+// paper = { "<主题>": {"image":"图片路径","dim":35}, ... }（dim=遮罩浓度 0-90）
+// 遮罩色取各主题纸色（硬编码表，与 CSS --paper 一致）：亮主题白雾压亮图、暗主题深雾压暗图
+const THEME_PAPER={"":"#f2f8ec","tavern":"#232529","sillytavern":"#242736","parchment":"#faf3e0","white":"#ffffff"};
+function applyPaper(t,dimOverride){
+  const c=$("content"), cfg=(savedState.paper||{})[t];
+  const hasImg = cfg && cfg.image;
+  if(hasImg){
+    // 优先用滑杆当前值（拖动即时预览），没传才用存好的浓度
+    const dim=Math.max(0,Math.min(90,dimOverride!=null?dimOverride:(Number(cfg.dim)||0)))/100;
+    const rgb=hexToRgb(THEME_PAPER[t]||"#f2f8ec");
+    const url="/api/paper_file?path="+encodeURIComponent(cfg.image);
+    c.style.backgroundImage="linear-gradient(rgba("+rgb+","+dim+"),rgba("+rgb+","+dim+")),url(\""+url+"\")";
+    c.style.backgroundSize="auto,cover";
+    c.style.backgroundPosition="center";
+    c.style.backgroundRepeat="no-repeat";
+    c.style.backgroundAttachment="scroll,scroll";
+  }else{
+    c.style.backgroundImage="";
+    c.style.backgroundSize="";
+    c.style.backgroundPosition="";
+    c.style.backgroundRepeat="";
+    c.style.backgroundAttachment="";
+  }
+  // 滑杆值：拖动预览时（传了 dimOverride）不回写滑杆，否则拖柄会被拽回去拖不动
+  $("paperDim").value = dimOverride!=null ? dimOverride : (hasImg ? (Number(cfg.dim)||0) : 35);
+  $("btnClearPaper").style.display = hasImg ? "" : "none";
+}
+function hexToRgb(h){
+  h=h.replace("#","");
+  if(h.length===3) h=h.split("").map(x=>x+x).join("");
+  const n=parseInt(h,16);
+  if(isNaN(n)) return "255,255,255";
+  return ((n>>16)&255)+","+((n>>8)&255)+","+(n&255);
+}
+function savePaper(){
+  const t=$("theme").value || "";
+  const p=Object.assign({},savedState.paper||{});
+  const cfg=p[t]||{};
+  if(cfg.image) p[t]={image:cfg.image,dim:Number($("paperDim").value)||0};
+  else delete p[t];
+  storeState({paper:p});
+}
+$("theme").addEventListener("change",()=>{ applyTheme($("theme").value); storeState({theme:$("theme").value||""}); });   // 选择落盘，重启保留
+
+// 底纹：弹系统窗口选图片 → 记到当前主题名下并立即应用
+$("btnPaper").onclick=async()=>{
+  let d;
+  try{ d=await api("/api/pick_image?path="+encodeURIComponent($("path").value.trim()),null,200000); }
+  catch(e){ msg($("scanMsg"),"选图失败："+(e.message||e),"err"); return; }
+  if(!d.path) return; // 取消，不动
+  const t=$("theme").value || "";
+  const p=Object.assign({},savedState.paper||{});
+  p[t]={image:d.path,dim:Number($("paperDim").value)||35};
+  storeState({paper:p});
+  applyPaper(t);
+  msg($("scanMsg"),"底纹已换，拖旁边的滑杆调遮罩，图看不清字就往右拉","ok");
+};
+// 遮罩滑杆：拖动即时预览（用滑杆当前值），松手才写入
+$("paperDim").addEventListener("input",()=>{ if((savedState.paper||{})[$("theme").value||""]) applyPaper($("theme").value||"",Number($("paperDim").value)); });
+$("paperDim").addEventListener("change",savePaper);
+// 清除当前主题的底纹
+$("btnClearPaper").onclick=()=>{
+  const t=$("theme").value || "";
+  const p=Object.assign({},savedState.paper||{});
+  delete p[t];
+  storeState({paper:p});
+  applyPaper(t);
+  msg($("scanMsg"),"已清除该主题的底纹","ok");
+};
+
+$("btnFont").onclick=()=>{
+  fontLevel=(fontLevel+1)%3;
+  const body=document.getElementById("bodyText");
+  if(body){body.classList.remove("small","large");if(fontLevel===0)body.classList.add("small");if(fontLevel===2)body.classList.add("large");}
+};
+
+function human(n){if(!n)return "0";const u=["B","KB","MB","GB","TB"];let i=0,x=n;while(x>=1024&&i<4){x/=1024;i++;}return (x>=10?x.toFixed(0):x.toFixed(1))+" "+u[i];}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function msg(el,text,type){el.className="msg "+(type||"ok");el.textContent=text;}
+async function api(url,body,timeoutMs,extSignal){
+  timeoutMs=timeoutMs||30000;
+  const ctrl=new AbortController();
+  if(extSignal){ if(extSignal.aborted) ctrl.abort(); else extSignal.addEventListener("abort",()=>ctrl.abort()); }
+  const timer=setTimeout(()=>ctrl.abort(),timeoutMs);
+  let opt={signal:ctrl.signal};
+  if(body){opt={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),signal:ctrl.signal};}
+  try{
+    const r=await fetch(url,opt);
+    if(!r.ok) throw new Error("HTTP error");
+    return await r.json();
+  }catch(e){
+    if(e.name==="AbortError") throw new Error("请求超时，后台服务没响应——请关掉黑窗口重新双击启动工具.bat");
+    if(e instanceof TypeError) throw new Error("连不上后台服务——黑窗口是不是关了？重新双击启动工具.bat");
+    throw e;
+  }finally{
+    clearTimeout(timer);
+  }
+}
+
+// 记忆书架路径与阅读进度（写到工具目录 state.json，搬家跟着走）
+let savedState = {};
+function storeState(patch){
+  Object.assign(savedState, patch);
+  fetch("/api/state",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(savedState)}).catch(()=>{});
+}
+// 收起顶部音频控件（换书/开PDF时用）
+function hideAudio(){
+  const a=$("audio");a.pause();a.removeAttribute("src");a.load();
+  a.classList.add("hidden");$("btnStop").classList.add("hidden");
+}
+
+// 启动自检：服务在不在？断线给醒目提示，不让界面假装活着
+(async()=>{
+  try{
+    const p=await api("/api/ping",null,5000);
+    if(!p.ok) throw new Error("bad ping");
+    // 恢复上次状态
+    savedState = await api("/api/state",null,5000);
+    // 恢复主题（默认豆沙绿也走 applyTheme，保证「清理并退出」的补色按钮着色）
+    applyTheme(savedState.theme||"");
+    // 首开引导：从没加载过书架（真·第一次用）时，把自带的 README 渲染成"使用说明"摊在正文区
+    if(!savedState.last_path){
+      try{
+        const g=await api("/api/readme",null,8000);
+        if(g.ok){
+          chapters=[{title:"阅见 · 使用说明",chars:g.text.length,text:g.text}];
+          curChap=0;
+          $("readerTitle").textContent="— 首次使用指南（加载书架后自动让位）";
+          renderGuide(g.text);
+        }
+      }catch(e){}
+    }
+    // 恢复面板宽度
+    if(savedState.shelf_w){$("shelfPane").style.width=savedState.shelf_w+"px";$("shelfPane").style.flexBasis=savedState.shelf_w+"px";}
+    if(savedState.chap_w){$("chapPane").style.width=savedState.chap_w+"px";}
+    if(savedState.last_path){
+      $("path").value=savedState.last_path;
+      // 自动恢复：直接重新加载书架，并回到上次读的书和章节
+      $("btnScan").click();
+    }
+  }catch(e){
+    const box=document.createElement("div");
+    box.style.cssText="background:#fdecea;color:#c0392b;border:1px solid #f3c4bd;padding:11px 14px;border-radius:9px;margin-bottom:14px;font-size:13px";
+    box.innerHTML="<b>连不上后台服务</b>：这个页面是静态预览，后面没有服务，点什么都连不上。<br>正确用法：关掉这个页面，到工具所在文件夹双击 <b>启动工具.bat</b>，等弹出独立窗口再用。<br>直接双击 index.html、或在 WorkBuddy 预览面板里看，都不行——必须从 bat 启动。";
+    document.querySelector(".wrap").prepend(box);
+  }
+})();
+
+// 心跳：每20秒 ping 一次后台。窗口一关心跳就断，服务120秒后自动退场并清理缓存。
+// 间隔放大是因为 Edge 会把最小化窗口的定时器降到一分钟一次，太密会被误判。
+setInterval(()=>{ fetch("/api/ping").catch(()=>{}); }, 20000);
+
+// 朗读可用性探测
+(async()=>{
+  try{
+    const s=await api("/api/voice",null,8000);
+    if(s.ok){ $("voiceState").textContent="　·　晓晓已就绪 ✓"; $("btnSpeak").disabled=false; }
+    else{ $("voiceState").innerHTML='　·　<b style="color:var(--warn-fg)">晓晓未就绪：'+esc(s.reason||'')+'</b>'; }
+  }catch(e){
+    $("voiceState").innerHTML='　·　<b style="color:var(--warn-fg)">朗读探测失败</b>';
+  }
+})();
+
+$("btnBrowse").onclick=async()=>{
+  const b=$("btnBrowse"); b.disabled=true;
+  let d;
+  try{ d=await api("/api/pick_folder?path="+encodeURIComponent($("path").value.trim()),null,200000); }
+  catch(e){ msg($("scanMsg"),"浏览失败："+(e.message||e),"err"); b.disabled=false; return; }
+  b.disabled=false;
+  if(d && d.path){ $("path").value=d.path; msg($("scanMsg"),"", ""); }
+  // 点「取消」时 d.path 为空：什么都不做，保留原输入。
+};
+
+$("btnScan").onclick=async()=>{
+  const b=$("btnScan");b.disabled=true;b.textContent="扫描中…";
+  let r;
+  try{
+    r=await api("/api/scan",{path:$("path").value},120000);
+  }catch(e){
+    b.disabled=false;b.textContent="加载书架";
+    msg($("scanMsg"),"扫描失败："+(e.message||e),"err");return;
+  }
+  b.disabled=false;b.textContent="加载书架";
+  if(!r.ok){msg($("scanMsg"),r.error||"扫描失败","err");return;}
+  books=r.books;
+  $("bookCount").textContent=`（${books.length} 本读物，${r.images} 张图片已忽略）`;
+  $("bookList").innerHTML=books.length?books.map((bk,i)=>
+    `<div class="item" data-i="${i}">
+       <span class="ext ${bk.ext}">${bk.ext.toUpperCase()}</span>
+       <span class="nm">${esc(bk.name)}<br><span class="meta">${esc(bk.rel)}　${human(bk.size)}${bk.ext==='pdf'?'　· 点击查看':''}</span></span>
+     </div>`).join(""):'<div class="empty">这个文件夹里没找到 txt / md / epub / pdf</div>';
+  $("bookList").querySelectorAll(".item").forEach(el=>{
+    el.onclick=async()=>{
+      const bk=books[+el.dataset.i];
+      if(bk.ext==="pdf"){
+        // 当前窗口内嵌 PDF 查看器，不跳新窗口；PDF 不朗读
+        $("bookList").querySelectorAll(".item").forEach(x=>x.classList.remove("active"));
+        el.classList.add("active");
+        curBook=bk;
+        $("readerTitle").textContent="— "+bk.name+"（PDF · 仅阅读）";
+        $("reader").style.display="none";
+        $("splitChap").style.display="none";
+        hideAudio();
+        $("pdfview").style.display="flex";
+        $("pdfFrame").src="/api/pdf?path="+encodeURIComponent(bk.path);
+        msg($("scanMsg"),"PDF 已在当前窗口打开，可翻页。扫描版无文字层，不朗读。","warn");
+        return;
+      }
+      // 从 PDF 切回文字书时，收起 PDF 区
+      if($("pdfview").style.display!=="none"){
+        $("pdfview").style.display="none";
+        $("pdfFrame").src="about:blank";
+        $("reader").style.display="";
+        $("splitChap").style.display="";
+      }
+      if(!bk.can_read){msg($("scanMsg"),"这种格式暂不支持阅读。","warn");return;}
+      await openBook(bk,el);
+    };
+  });
+  storeState({last_path:$("path").value.trim()});
+  msg($("scanMsg"),`扫描完成：${books.length} 本读物。${r.images} 张图片已自动跳过，不参与朗读。`,"ok");
+  // 恢复上次读到的书 + 章节
+  if(savedState.last_book){
+    const idx=books.findIndex(b=>b.name===savedState.last_book);
+    if(idx>=0){
+      const el=$("bookList").querySelectorAll(".item")[idx];
+      if(el) el.click();
+      // openBook 是异步的，等它渲染完再跳章节
+      const target=savedState.last_chapter||0;
+      const wait=setInterval(()=>{
+        if(chapters.length){
+          renderChap(Math.min(target,chapters.length-1));
+          msg($("scanMsg"),`已回到上次读到的《${savedState.last_book}》第 ${Math.min(target,chapters.length-1)+1} 节。`,"ok");
+          clearInterval(wait);
+        }
+      },150);
+      setTimeout(()=>clearInterval(wait),8000);
+    }
+  }
+};
+
+async function openBook(bk,el){
+  $("bookList").querySelectorAll(".item").forEach(x=>x.classList.remove("active"));
+  if(el)el.classList.add("active");
+  curBook=bk;
+  $("readerTitle").textContent="— "+bk.name;
+  let r;
+  try{
+    r=await api("/api/read",{path:bk.path},60000);
+  }catch(e){
+    msg($("ttsMsg"),"读取失败："+(e.message||e),"err");return;
+  }
+  if(!r.ok){msg($("ttsMsg"),r.error||"读取失败","err");return;}
+  chapters=r.chapters||[];curChap=0;
+  storeState({last_book:bk.name});
+  $("chapList").innerHTML=chapters.map((c,i)=>`<div class="chap ${i===0?'active':''}" data-i="${i}">${esc(c.title)}<br><span class="meta">${c.chars} 字</span></div>`).join("");
+  $("chapList").querySelectorAll(".chap").forEach(x=>x.onclick=()=>renderChap(+x.dataset.i));
+  hideAudio();
+  msg($("ttsMsg"),`《${bk.name}》自动认出 ${chapters.length} 个章节。`,"ok");
+  renderChap(0);
+}
+
+// ---- 正文搜索：当前章节内查找，高亮全部命中，▲▼ 跳转 ----
+let hits = [], hitIdx = -1;
+
+// ---- 首开引导：迷你 Markdown 渲染（标题/列表/表格/加粗/代码，够用即可） ----
+function mdInline(s){
+  return esc(s).replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>").replace(/`([^`]+)`/g,"<code>$1</code>");
+}
+function mdTable(rs){
+  let h="<table class='g-table'><tr>";
+  rs[0].forEach(c=>h+="<th>"+mdInline(c)+"</th>");
+  h+="</tr>";
+  for(let i=1;i<rs.length;i++){ h+="<tr>"; rs[i].forEach(c=>h+="<td>"+mdInline(c)+"</td>"); h+="</tr>"; }
+  return h+"</table>";
+}
+function renderGuide(src){
+  const lines=src.split(/\r?\n/);
+  let out="",rows=[];
+  for(const L of lines){
+    if(/^\s*\|/.test(L)){
+      if(/^\s*\|[\s:|-]+\|\s*$/.test(L)) continue;   // 表格分隔行跳过
+      rows.push(L.replace(/^\s*\|/,"").replace(/\|\s*$/,"").split("|").map(c=>c.trim()));
+      continue;
+    }
+    if(rows.length){ out+=mdTable(rows); rows=[]; }
+    if(/^#\s/.test(L)) continue;                      // 一级标题跳过（标题条里已有）
+    if(/^#{2,6}\s/.test(L)){
+      const n=L.match(/^#+/)[0].length;
+      out+= n===2 ? "<div class='g-h2'>"+mdInline(L.replace(/^#+\s/,""))+"</div>"
+                  : "<div class='g-h3'>"+mdInline(L.replace(/^#+\s/,""))+"</div>";
+    }
+    else if(/^\s*---+\s*$/.test(L)) out+="<hr class='g-hr'>";
+    else if(/^\s*[-*]\s/.test(L)) out+="<div class='g-li'>• "+mdInline(L.replace(/^\s*[-*]\s/,""))+"</div>";
+    else if(/^\s*\d+\.\s/.test(L)) out+="<div class='g-li'>"+mdInline(L)+"</div>";
+    else if(L.trim()) out+="<div class='g-p'>"+mdInline(L)+"</div>";
+  }
+  if(rows.length) out+=mdTable(rows);
+  $("content").innerHTML="<h3>阅见 · 使用说明</h3><div class='guideBody'>"+out+"</div>";
+}
+
+function renderBody(){
+  // 按当前搜索词渲染正文（有词就把命中包上 <mark>）
+  const c=chapters[curChap];
+  const fs=["small","","large"][fontLevel];
+  const q=$("searchInput").value.trim();
+  let inner;
+  if(q){
+    const re=new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gi");
+    let idx=0,out="",m;
+    while((m=re.exec(c.text))){
+      if(m[0].length===0){re.lastIndex++;continue;}
+      out+=esc(c.text.slice(idx,m.index))+"<mark>"+esc(m[0])+"</mark>";
+      idx=m.index+m[0].length;
+    }
+    inner=out+esc(c.text.slice(idx));
+  }else{
+    inner=esc(c.text);
+  }
+  $("content").innerHTML=`<h3>${esc(c.title)}</h3><div class="body ${fs}" id="bodyText">${inner}</div>`;
+}
+
+function updateSearchCount(){
+  const q=$("searchInput").value.trim();
+  if(!q){$("searchCount").textContent="";return;}
+  $("searchCount").textContent=hits.length?("第 "+(hitIdx+1)+" / "+hits.length+" 处"):"无结果";
+}
+
+function applySearch(scrollFirst){
+  hits=[...document.querySelectorAll("#bodyText mark")];
+  hitIdx=scrollFirst&&hits.length?0:-1;
+  hits.forEach((m,j)=>m.classList.toggle("active",j===hitIdx));
+  if(scrollFirst&&hits.length) snapToScreen(hits[0]);   // 按屏跳：命中落在整屏上，不打乱页格
+  updateSearchCount();
+}
+
+function jumpHit(dir){
+  if(!hits.length)return;
+  hitIdx=(hitIdx+dir+hits.length)%hits.length;
+  hits.forEach((m,j)=>m.classList.toggle("active",j===hitIdx));
+  snapToScreen(hits[hitIdx]);
+  updateSearchCount();
+}
+
+// ---- v4.1 正文翻页：左右翻一屏（←/→ 键或浮钮）；搜索命中按屏跳；当前命中高亮 ----
+function pageFlip(dir){
+  const c=$("content");
+  if(!curBook||!chapters[curChap]||$("pdfview").style.display!=="none")return;
+  const h=c.clientHeight;
+  if(h<=0)return;
+  if(dir>0 && c.scrollTop+c.clientHeight>=c.scrollHeight-2)return;   // 已到末页，不再翻
+  if(dir<0 && c.scrollTop<=0)return;                                  // 已到首页
+  c.scrollBy({top:dir*h,behavior:"smooth"});
+}
+// 把命中元素对齐到整屏页格：算它在第几屏，直接跳到那一屏的开头
+function snapToScreen(el){
+  const c=$("content");
+  const h=c.clientHeight;
+  if(h<=0){el.scrollIntoView({block:"center"});return;}
+  const top=el.getBoundingClientRect().top-c.getBoundingClientRect().top+c.scrollTop;
+  c.scrollTo({top:Math.floor(top/h)*h,behavior:"smooth"});
+}
+$("pgPrev").onclick=()=>pageFlip(-1);
+$("pgNext").onclick=()=>pageFlip(1);
+document.addEventListener("keydown",e=>{
+  if(e.key!=="ArrowLeft"&&e.key!=="ArrowRight")return;
+  const t=e.target;
+  if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.isContentEditable))return;   // 输入框里不抢左右键
+  pageFlip(e.key==="ArrowRight"?1:-1);
+  e.preventDefault();
+});
+
+$("searchInput").addEventListener("input",()=>{
+  if(curBook&&chapters[curChap]){ renderBody(); applySearch(true); }
+  else updateSearchCount();
+});
+$("btnNextHit").onclick=()=>jumpHit(1);
+$("btnPrevHit").onclick=()=>jumpHit(-1);
+$("btnClearSearch").onclick=()=>{ $("searchInput").value=""; if(curBook&&chapters[curChap]){ renderBody(); applySearch(false);} updateSearchCount(); };
+
+function renderChap(i){
+  curChap=i;
+  storeState({last_chapter:i});
+  $("chapList").querySelectorAll(".chap").forEach((x,j)=>x.classList.toggle("active",j===i));
+  renderBody();
+  applySearch(false);   // 换章节时沿用当前搜索词，重新高亮但不跳
+  $("content").scrollTop=0;
+}
+
+// 清除：一键清空书架、章节、正文和搜索，停掉朗读，抹掉自动恢复记录（路径框保留）
+$("btnClearShelf").onclick=()=>{
+  hideAudio();
+  books=[];curBook=null;chapters=[];curChap=0;hits=[];hitIdx=-1;
+  $("bookList").innerHTML='<div class="empty">加载文件夹后，书会出现在这里</div>';
+  $("chapList").innerHTML='<div class="empty" style="padding:40px 10px">选一章节</div>';
+  $("content").innerHTML='<div class="empty">开始阅读</div>';
+  $("readerTitle").textContent="";
+  $("searchInput").value="";$("searchCount").textContent="";
+  // 从 PDF 视图切回阅读区（如果正开着 PDF）
+  if($("pdfview").style.display!=="none"){
+    $("pdfview").style.display="none";$("pdfFrame").src="about:blank";
+    $("reader").style.display="";$("splitChap").style.display="";
+  }
+  // 清除＝真清空：恢复记录（last_path/last_book/last_chapter）一起抹掉，
+  // 重启不再弹回；✕ 正常关窗不受影响，照旧自动恢复
+  storeState({last_path:"",last_book:"",last_chapter:0});
+  msg($("scanMsg"),"已清空书架和阅读区（恢复记录一并抹掉，重启不再弹回）。","ok");
+};
+
+let speaking = false;      // 正在生成音频
+let ratePending = false;   // 生成期间又换了语速 → 打断旧生成，立即按新语速重跑
+let ttsCtrl = null;        // 当前合成请求的中断控制器（换语速时用来打断）
+
+function rateStr(){
+  const mult=parseFloat($("rate").value);           // 1.2 表示 1.2 倍
+  const pct=Math.round((mult-1)*100);               // edge-tts 用百分比：+20% / -40%
+  return (pct>=0?"+":"")+pct+"%";
+}
+
+$("btnSpeak").onclick=async()=>{
+  if(speaking)return;
+  if(!curBook||!chapters[curChap]){ msg($("ttsMsg"),"当前是使用说明页，先点「加载书架」装入书才能朗读。","err"); return; }
+  speaking=true;
+  const b=$("btnSpeak");b.disabled=true;
+  const ch=chapters[curChap];
+  const est=Math.max(3,Math.round(ch.text.length/160));   // 实测约 160 字/秒（两路并行），给个预期
+  b.textContent=`生成中…约${est>=60?Math.round(est/60)+"分钟":est+"秒"}`;
+  msg($("ttsMsg"),"正在合成音频（本章 "+ch.text.length+" 字）。首次生成需等待，同章同语速下次秒开。","ok");
+  let r;
+  try{
+    ttsCtrl=new AbortController();
+    r=await api("/api/tts",{text:ch.text,key:curBook.path+"#"+curChap+"#"+rateStr(),rate:rateStr()},180000,ttsCtrl.signal);
+  }catch(e){
+    speaking=false;b.disabled=false;b.textContent="朗读本章";
+    if(ratePending){ ratePending=false; $("btnSpeak").click(); return; }  // 换语速主动打断，不算错误
+    msg($("ttsMsg"),"朗读失败："+(e.message||e),"err");return;
+  }
+  speaking=false;b.disabled=false;b.textContent="朗读本章";
+  if(ratePending){ ratePending=false; $("btnSpeak").click(); return; }  // 生成期间换过语速，按新语速重来
+  if(!r.ok){msg($("ttsMsg"),r.error||"生成失败","err");return;}
+  $("audio").src="/api/audio?name="+encodeURIComponent(r.file);
+  $("audio").classList.remove("hidden");$("btnStop").classList.remove("hidden");
+  // 缓存保留策略：听完不删，下次同章同语速点朗读秒开；想清空用「清理并退出」
+  $("audio").play().catch(()=>{});
+  msg($("ttsMsg"), r.cached ? "缓存命中，秒开不用重新生成。" : "已生成音频，正在播放。可拖进度条、可下载。","ok");
+};
+$("btnStop").onclick=()=>{const a=$("audio");a.pause();a.currentTime=0;};
+// 换语速立即生效：闲时直接按新语速生成；生成中立即打断旧的、马上按新语速重来（不等旧的做完）
+$("rate").addEventListener("change",()=>{
+  if(speaking){ ratePending=true; if(ttsCtrl) ttsCtrl.abort(); return; }
+  if(curBook&&chapters[curChap]) $("btnSpeak").click();
+});
+$("btnQuit").onclick=async()=>{
+  $("audio").pause();
+  try{ await fetch("/api/quit",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"}); }catch(e){}
+  // 后端会关掉 Edge 窗口，这里不必再提示；万一窗口没关，给一句兜底
+  setTimeout(()=>{ try{ document.body.innerHTML='<div style="text-align:center;padding:80px;font-family:Microsoft YaHei;font-size:18px;color:#9a98a8">已退出，可以关掉这个窗口了。</div>'; }catch(e){} }, 800);
+};
+$("btnClosePdf").onclick=()=>{
+  $("pdfview").style.display="none";
+  $("pdfFrame").src="about:blank";
+  $("reader").style.display="";
+  $("splitChap").style.display="";
+  $("readerTitle").textContent="";
+  $("bookList").querySelectorAll(".item").forEach(x=>x.classList.remove("active"));
+  hideAudio();
+};
+</script>
+</body>
+</html>
