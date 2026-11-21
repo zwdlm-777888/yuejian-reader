@@ -109,6 +109,81 @@ _pick_thread_ready = threading.Event()
 
 _PICK_FILETYPES = [("图片", "*.jpg *.jpeg *.png *.webp *.bmp *.gif"), ("所有文件", "*.*")]
 
+
+def _force_dialog_front(stop_evt, timeout=180):
+    """辅助线程：本进程的系统对话框一冒头，就把它钉到最前台。
+    零依赖——ctypes 直接调 Windows 的 user32，不装任何东西。
+    病根：对话框从后台线程弹出，Windows 默认不给焦点、会躲到主窗后面；
+    在隐藏的 Tk 主窗上设 topmost 传不到对话框（上次这么修，没用）。
+    这里按「本进程 PID + 标准对话框类名 #32770」认出它，反复置顶＋抢焦点
+    直到对话框关闭（stop_evt 置位）。非 Windows 或出错就静静退出，不影响弹窗本身。"""
+    try:
+        import ctypes
+        from ctypes import wintypes
+        user32 = ctypes.windll.user32
+        kernel32 = ctypes.windll.kernel32
+        pid = kernel32.GetCurrentProcessId()
+
+        HWnd = wintypes.HWND
+        WNDENUMPROC = ctypes.WINFUNCTYPE(wintypes.BOOL, HWnd, wintypes.LPARAM)
+        # 必须显式声明参数签名：64 位下 HWND 是指针，不声明 ctypes 会按 32 位传，
+        # 系统接口静默失败——实测过：不声明时置顶标志写不上，声明后立马生效。
+        kernel32.GetCurrentProcessId.argtypes = []
+        kernel32.GetCurrentProcessId.restype = wintypes.DWORD
+        user32.EnumWindows.argtypes = [WNDENUMPROC, wintypes.LPARAM]
+        user32.EnumWindows.restype = wintypes.BOOL
+        user32.GetWindowThreadProcessId.argtypes = [HWnd, ctypes.POINTER(wintypes.DWORD)]
+        user32.GetWindowThreadProcessId.restype = wintypes.DWORD
+        user32.IsWindowVisible.argtypes = [HWnd]
+        user32.IsWindowVisible.restype = wintypes.BOOL
+        user32.GetClassNameW.argtypes = [HWnd, wintypes.LPWSTR, ctypes.c_int]
+        user32.GetClassNameW.restype = ctypes.c_int
+        user32.ShowWindow.argtypes = [HWnd, ctypes.c_int]
+        user32.ShowWindow.restype = wintypes.BOOL
+        user32.SetWindowPos.argtypes = [HWnd, HWnd, ctypes.c_int, ctypes.c_int,
+                                        ctypes.c_int, ctypes.c_int, ctypes.c_uint]
+        user32.SetWindowPos.restype = wintypes.BOOL
+        user32.BringWindowToTop.argtypes = [HWnd]
+        user32.BringWindowToTop.restype = wintypes.BOOL
+        user32.SetForegroundWindow.argtypes = [HWnd]
+        user32.SetForegroundWindow.restype = wintypes.BOOL
+
+        HWND_TOPMOST = -1
+        SWP_NOMOVE, SWP_NOSIZE, SWP_SHOWWINDOW = 0x0002, 0x0001, 0x0040
+
+        found = []
+        def _enum_cb(hwnd, _lparam):
+            wpid = wintypes.DWORD()
+            user32.GetWindowThreadProcessId(hwnd, ctypes.byref(wpid))
+            if wpid.value == pid and user32.IsWindowVisible(hwnd):
+                buf = ctypes.create_unicode_buffer(256)
+                user32.GetClassNameW(hwnd, buf, 256)
+                if buf.value == "#32770":          # Windows 标准对话框类＝系统选文件/文件夹窗
+                    found.append(hwnd)
+                    return False                   # 认出一个就够，停止枚举
+            return True
+
+        deadline = time.time() + timeout
+        while not stop_evt.is_set() and time.time() < deadline:
+            del found[:]
+            try:
+                user32.EnumWindows(WNDENUMPROC(_enum_cb), 0)
+            except Exception:
+                pass
+            for hwnd in found:
+                try:
+                    user32.ShowWindow(hwnd, 9)     # SW_RESTORE：万一最小化，先还原
+                    user32.SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0,
+                                        SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW)
+                    user32.BringWindowToTop(hwnd)
+                    user32.SetForegroundWindow(hwnd)
+                except Exception:
+                    pass
+            stop_evt.wait(0.15)                    # 抢得够勤，弹窗一露头就被压到最前
+    except Exception as ex:
+        log_err("force_dialog_front", ex)
+
+
 def _pick_dialog_worker():
     """常驻线程：收到请求就在本线程里弹系统对话框（文件夹或选图片）。"""
     import tkinter as tk
@@ -120,21 +195,17 @@ def _pick_dialog_worker():
         result_q = req["result_q"]
         chosen = ""
         root = None
+        stop_evt = None
         try:
             root = tk.Tk()
             # 主窗口挪到屏幕外并缩到最小：只让系统对话框可见，不露多余的 Tk 空窗
             root.geometry("1x1+9999+9999")
             root.withdraw()
             root.update_idletasks()
-            # 对话框内部有自己的事件循环；排一个延迟回调，在对话框弹出后把它抢到前台
-            def _front():
-                try:
-                    root.attributes("-topmost", True)
-                    root.lift()
-                    root.focus_force()
-                except Exception:
-                    pass
-            root.after(300, _front)
+            # 系统级置顶：辅助线程盯住本进程弹出的对话框，一冒头就钉到最前。
+            # 原来在隐藏 Tk 主窗上设 topmost 传不到对话框，已废弃。
+            stop_evt = threading.Event()
+            threading.Thread(target=_force_dialog_front, args=(stop_evt,), daemon=True).start()
             if kind == "image":
                 opts = {"title": "选择纸底图片", "filetypes": _PICK_FILETYPES}
                 if initial and os.path.isdir(initial):
@@ -151,6 +222,8 @@ def _pick_dialog_worker():
             log_err("pick_dialog", ex)
             chosen = ""
         finally:
+            if stop_evt is not None:
+                stop_evt.set()          # 对话框关了，停掉置顶辅助线程
             if root is not None:
                 try:
                     root.destroy()
@@ -377,12 +450,12 @@ def scan_folder(root):
 
 
 def sweep_part_files():
-    """启动清扫：上次合成中途退场留下的 _part_ 半成品碎片清掉。
-    只清 _part_ 前缀，不动 audio_ 缓存（那是 ✕ 关窗留给下次秒开的）。"""
+    """启动清扫：上次合成中途退场留下的半成品碎片清掉。
+    清 _part_（旧整章合成）和 _seg_（v5.1 边合边播分段），不动 audio_ 缓存（那是 ✕ 关窗留给下次秒开的）。"""
     n = 0
     try:
         for fn in os.listdir(CACHE):
-            if fn.startswith("_part_") and fn.endswith(".mp3"):
+            if (fn.startswith("_part_") or fn.startswith("_seg_")) and fn.endswith(".mp3"):
                 try:
                     os.remove(os.path.join(CACHE, fn)); n += 1
                 except Exception:
@@ -471,6 +544,110 @@ def synth_chapter(text, chapter_key, rate):
             if attempt < 3:
                 time.sleep(1.0 * (attempt + 1))   # 1/2/3 秒，配合并行别让用户等太久
     return {"ok": False, "error": "%s: %s（已自动重试 4 次仍失败，多半是网络或微软接口抽风，稍后再试）" % (type(last_err).__name__, str(last_err)[:200])}
+
+
+# ========== v5.1 任务9：边合边播 ==========
+# 一个 key（书#章#语速）对应一个后台合成任务。首段优先出、剩余两路并行、拼整落缓存。
+# cancel 事件用于换语速时掐断后台队列——不是只断前端 HTTP 请求。
+TTS_JOBS = {}          # key -> {cancel, parts:{i:文件名}, segs, digest, done, error, full, rate}
+TTS_JOBS_LOCK = threading.Lock()
+
+
+def tts_digest(key, rate, text):
+    return hashlib.md5((key + "|" + str(rate) + "|" + text[:80]).encode("utf-8")).hexdigest()[:16]
+
+
+def synth_one_part(text, rate, out_path, retries=4):
+    """合成单段到 out_path，带自动重试（微软接口偶发抽风）。供后台 worker 调用。"""
+    import asyncio
+    import edge_tts
+    last = None
+    for a in range(retries):
+        try:
+            async def go():
+                c = edge_tts.Communicate(text, "zh-CN-XiaoxiaoNeural", rate=rate)
+                await c.save(out_path)
+            asyncio.run(go())
+            if os.path.exists(out_path) and os.path.getsize(out_path) > 0:
+                return True
+            last = RuntimeError("空音频")
+        except Exception as ex:
+            last = ex
+        if a < retries - 1:
+            time.sleep(1.0 * (a + 1))
+    return False
+
+
+def tts_job_worker(key, text, rate, job):
+    """后台：首段先合（前端拿到就开播）→ 剩余两路并行 → 拼整落缓存 → 清段文件。"""
+    digest = job["digest"]
+    cancel = job["cancel"]
+    chunks = [text[i:i + 2200] for i in range(0, len(text), 2200)] or [text]
+    job["segs"] = len(chunks)
+
+    def part_path(i):
+        return os.path.join(CACHE, "_seg_%s_%d.mp3" % (digest, i))
+
+    def make(i):
+        """合成第 i 段；每段开始前和完成后都查 cancel，掐断后不再往下合。"""
+        if cancel.is_set():
+            return False
+        p = part_path(i)
+        # 已有完整段（比如上次掐断留下又没清掉的）直接用
+        if os.path.exists(p) and os.path.getsize(p) > 0:
+            with TTS_JOBS_LOCK:
+                job["parts"][i] = os.path.basename(p)
+            return True
+        ok = synth_one_part(chunks[i], rate, p)
+        if ok and not cancel.is_set():
+            with TTS_JOBS_LOCK:
+                job["parts"][i] = os.path.basename(p)
+        else:
+            # 失败或合成途中被取消：段文件删掉，不留垃圾
+            try:
+                os.remove(p)
+            except Exception:
+                pass
+        return ok
+
+    try:
+        # 首段优先：合完立刻暴露，前端开播，不再等整章
+        if not make(0):
+            if not cancel.is_set():
+                job["error"] = "合成首段失败"
+                job["done"] = True
+            return
+        rest = list(range(1, len(chunks)))
+        if rest and not cancel.is_set():
+            from concurrent.futures import ThreadPoolExecutor
+            with ThreadPoolExecutor(max_workers=2) as ex:
+                futs = [ex.submit(make, i) for i in rest]
+                for f in futs:
+                    try:
+                        f.result()
+                    except Exception:
+                        pass
+        if cancel.is_set():
+            return
+        # 全部就绪 → 静默拼成完整 mp3 落缓存，保住"下次秒开"
+        out = os.path.join(CACHE, "audio_%s.mp3" % digest)
+        with open(out, "wb") as w:
+            for i in range(len(chunks)):
+                p = part_path(i)
+                if os.path.exists(p):
+                    with open(p, "rb") as r:
+                        w.write(r.read())
+        job["full"] = os.path.basename(out)
+        for i in range(len(chunks)):   # 段文件用完即清，不留垃圾
+            try:
+                os.remove(part_path(i))
+            except Exception:
+                pass
+    except Exception as ex:
+        log_err("tts_job", ex)
+        job["error"] = "%s: %s" % (type(ex).__name__, str(ex)[:160])
+    finally:
+        job["done"] = True
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -591,6 +768,9 @@ class Handler(BaseHTTPRequestHandler):
         u = urlparse(self.path)
         if u.path in ("/", "/index.html"):
             self._file(INDEX, "text/html; charset=utf-8")
+        elif u.path in ("/pdfjs/pdf.min.mjs", "/pdfjs/pdf.worker.min.mjs"):
+            # v5.1：pdf.js 库（ES module）。白名单两个文件名，防目录穿越。
+            self._file(os.path.join(BASE, u.path.lstrip("/")), "text/javascript; charset=utf-8")
         elif u.path == "/favicon.ico":
             # 程序画的图标：绿色圆底＋白色翻开的书。有它，--app 窗口/任务栏就不再是 Edge 默认地球。
             self.send_response(200)
@@ -602,7 +782,9 @@ class Handler(BaseHTTPRequestHandler):
             self._json(voice_check())
         elif u.path == "/api/audio":
             name = parse_qs(u.query).get("name", [""])[0]
-            if not re.fullmatch(r"[\w\-. ]+\.mp3", name):
+            # audio_ 完整缓存 / _seg_ 边合边播的分段，都允许
+            if not (re.fullmatch(r"[\w\-. ]+\.mp3", name) and
+                    (name.startswith("audio_") or name.startswith("_seg_"))):
                 self._json({"error": "非法文件名"}, 400)
                 return
             self._stream(os.path.join(CACHE, name), "audio/mpeg")
@@ -620,6 +802,43 @@ class Handler(BaseHTTPRequestHandler):
                 self._json({"error": "非法或越界的 PDF 路径"}, 400)
                 return
             self._pdf(ap)
+        elif u.path == "/api/pdfpages":
+            # 数 PDF 总页数（给"尾页"按钮用）：数 "/Type /Page" 出现次数、扣掉 "/Type /Pages"。
+            # 粗估法，个别压缩对象的 PDF 可能数不准；数不出来就返回 0，前端隐藏尾页钮。
+            path = parse_qs(u.query).get("path", [""])[0]
+            root = SCAN_ROOT[0]
+            try:
+                ap = os.path.abspath(path)
+                ok = (root and os.path.commonpath([root, ap]) == root
+                      and ap.lower().endswith(".pdf") and os.path.isfile(ap))
+            except Exception:
+                ok = False
+            if not ok:
+                self._json({"error": "非法或越界的 PDF 路径"}, 400)
+                return
+            n = 0
+            try:
+                with open(ap, "rb") as f:
+                    raw = f.read()
+                n = raw.count(b"/Type /Page") - raw.count(b"/Type /Pages")
+                if n <= 0:
+                    m = re.findall(rb"/Count\s+(\d+)", raw)
+                    if m:
+                        n = max(int(x) for x in m)
+            except Exception as ex:
+                log_err("pdfpages", ex)
+            self._json({"pages": max(0, n)})
+        elif u.path == "/api/tts_status":
+            # v5.1 任务9：前端轮询合成进度。key 定位任务，返回已就绪段 + 总段数 + 是否拼整完成
+            key = parse_qs(u.query).get("key", [""])[0]
+            with TTS_JOBS_LOCK:
+                job = TTS_JOBS.get(key)
+                if not job:
+                    self._json({"ok": False, "error": "无此任务"})
+                else:
+                    self._json({"ok": True, "segs": job["segs"], "parts": dict(job["parts"]),
+                                "done": job["done"], "full": job["full"], "error": job.get("error", ""),
+                                "cancelled": job["cancel"].is_set()})
         elif u.path == "/api/browse":
             self._json(self._browse(parse_qs(u.query).get("path", [""])[0]))
         elif u.path == "/api/pick_folder":
@@ -713,6 +932,50 @@ class Handler(BaseHTTPRequestHandler):
                     self._json({"ok": False, "error": "空文本"})
                 else:
                     self._json(synth_chapter(text, key, rate))
+            elif u.path == "/api/tts_begin":
+                # v5.1 任务9：启动边合边播。先查完整缓存（秒开），没有就起后台分段合成。
+                text = data.get("text", "")
+                key = data.get("key", "x")
+                rate = data.get("rate", "+0%")
+                if not text.strip():
+                    self._json({"ok": False, "error": "空文本"})
+                    return
+                digest = tts_digest(key, rate, text)
+                full = "audio_%s.mp3" % digest
+                fp = os.path.join(CACHE, full)
+                if os.path.exists(fp) and os.path.getsize(fp) > 0:
+                    self._json({"ok": True, "cached": True, "full": full,
+                                "segs": 0, "chars": len(text)})
+                    return
+                nseg = max(1, (len(text) + 2199) // 2200)
+                with TTS_JOBS_LOCK:
+                    prev = TTS_JOBS.get(key)
+                    if prev and not prev["done"] and not prev["cancel"].is_set() and prev["rate"] == rate:
+                        pass   # 同 key 同语速的任务还在跑，直接复用，不重复起
+                    else:
+                        if prev:
+                            prev["cancel"].set()   # 旧任务（换语速等）掐掉
+                        TTS_JOBS[key] = {"cancel": threading.Event(), "parts": {}, "segs": nseg,
+                                         "digest": digest, "done": False, "error": "", "full": "", "rate": rate}
+                        threading.Thread(target=tts_job_worker,
+                                         args=(key, text, rate, TTS_JOBS[key]), daemon=True).start()
+                self._json({"ok": True, "cached": False, "segs": nseg, "chars": len(text)})
+            elif u.path == "/api/tts_cancel":
+                # 换语速/停止：掐掉后台合成队列——设 cancel 事件，worker 每段前后都查它
+                key = data.get("key", "x")
+                with TTS_JOBS_LOCK:
+                    job = TTS_JOBS.get(key)
+                    if job:
+                        job["cancel"].set()
+                        # 该任务锁定的段文件也清掉，免得残留占空间（worker 若正在写会随后退出）
+                        digest = job["digest"]
+                        for fn in os.listdir(CACHE):
+                            if fn.startswith("_seg_%s_" % digest) and fn.endswith(".mp3"):
+                                try:
+                                    os.remove(os.path.join(CACHE, fn))
+                                except Exception:
+                                    pass
+                self._json({"ok": True})
             elif u.path == "/api/clear_cache":
                 n = 0
                 for fn in os.listdir(CACHE):
@@ -734,8 +997,11 @@ class Handler(BaseHTTPRequestHandler):
                 else:
                     self._json({"ok": False, "error": "非法文件名"})
             elif u.path == "/api/state":
+                # 白名单：只落这些字段。v5.1 新增 strip_blank/text_dim/body_font/paper_dir
+                # （paper_dir 是补漏——v5.1 前端写了但没进白名单，"记住上次选图目录"一直没生效）
                 self._json({"ok": save_state({k: data.get(k) for k in
-                            ("last_path", "last_book", "last_chapter", "shelf_w", "chap_w", "theme", "paper")})})
+                            ("last_path", "last_book", "last_chapter", "shelf_w", "chap_w",
+                             "theme", "paper", "paper_dir", "strip_blank", "text_dim", "body_font")})})
             elif u.path == "/api/quit":
                 # 先回包，再从另起的线程彻底退场（关窗口+清缓存+关服务），避免把自己掐断
                 self._json({"ok": True})
