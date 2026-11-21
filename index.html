@@ -73,7 +73,7 @@
   html,body{height:100%;overflow:hidden}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;font-size:14px;line-height:1.6}
   .wrap{height:100%;display:flex;flex-direction:column;padding:10px 14px;gap:8px;min-height:0}
-  h1{font-size:18px;margin:0;font-weight:600;display:flex;align-items:center;gap:8px;flex:0 0 auto;background:var(--topbar,transparent);border:1px solid var(--topbar-line,transparent);border-radius:10px;padding:7px 14px}
+  h1{font-size:18px;margin:0;font-weight:600;display:flex;flex-wrap:wrap;align-items:center;gap:8px;flex:0 0 auto;background:var(--topbar,transparent);border:1px solid var(--topbar-line,transparent);border-radius:10px;padding:7px 14px}
   .ver{font-size:11px;font-weight:400;opacity:.6;white-space:nowrap}
   .pill{font-size:11.5px;background:var(--pill-bg);color:var(--pill-fg);border-radius:20px;padding:2px 9px;font-weight:400}
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;flex:0 0 auto}
@@ -98,11 +98,14 @@
   .mini{font-size:12px;padding:3px 9px;border:1px solid var(--line);border-radius:6px;background:var(--btn);cursor:pointer;color:var(--muted)}
   .mini:hover{background:var(--panel);color:var(--ink)}
   select.mini{padding:4px 7px;font-size:12px;color:var(--ink)}
+  /* 滑杆不能套 .mini 的 padding——Chrome 会把滑块活动范围缩进 padding 里，拖不到头。单独给零 padding 样式 */
+  input[type=range].mini{padding:0;border:0;background:transparent;height:18px;cursor:pointer}
+  input[type=range].mini::-webkit-slider-thumb{width:14px;height:14px}
   .mini.speak{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600;padding:4px 12px}
   .mini.speak:hover{background:var(--brand-d);border-color:var(--brand-d)}
-  /* 统一按钮色：浏览/章节/字号与「加载书架」同色；退出工具同色相、明度提亮 10% */
-  #btnBrowse,#btnToggleChap,#btnFont{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
-  #btnBrowse:hover,#btnToggleChap:hover,#btnFont:hover{background:var(--brand-d);border-color:var(--brand-d)}
+  /* 统一按钮色：章节/字号与「加载书架」同色；退出工具同色相、明度提亮 10% */
+  #btnToggleChap,#btnFont{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+  #btnToggleChap:hover,#btnFont:hover{background:var(--brand-d);border-color:var(--brand-d)}
   /* 退出工具：主色的补色（每主题硬编码，色环转 180°、明度饱和度同主色），背景由 applyTheme 按主题设置 */
   #btnQuit{color:#fff;font-weight:600}
   #btnQuit:hover{filter:brightness(1.1)}
@@ -135,17 +138,16 @@
   .content mark{background:var(--mark);color:inherit;padding:0;border-radius:2px}
   .content mark.active{background:var(--mark-active);color:#fff}
   .content h3{font-size:18px;margin:0 0 16px;padding-bottom:12px;border-bottom:2px solid var(--line)}
-  .content .body{white-space:pre-wrap;font-size:16px;line-height:2.1;color:var(--ink);letter-spacing:.3px;max-width:900px}
+  .content .body{white-space:pre-wrap;font-size:16px;line-height:2.1;color:var(--ink);letter-spacing:.3px;max-width:900px;filter:brightness(var(--text-bright,1));font-family:var(--body-font,"Microsoft YaHei","PingFang SC",system-ui,sans-serif)}
   /* 滚动条：细、低调，跟主题走，不刺眼 */
   ::-webkit-scrollbar{width:10px;height:10px}
   ::-webkit-scrollbar-track{background:transparent}
   ::-webkit-scrollbar-thumb{background:var(--split);border-radius:6px;border:2px solid transparent;background-clip:content-box}
   ::-webkit-scrollbar-thumb:hover{background:var(--muted);border:2px solid transparent;background-clip:content-box}
   ::-webkit-scrollbar-corner{background:transparent}
-  .content .body.small{font-size:13px;line-height:1.9}
-  .content .body.large{font-size:19px;line-height:2.2}
+  /* v5.1 任务3：字号五档改为行内 px（档位表 FONT_SIZES），原三档 class 规则废弃 */
   /* 首开引导页（README 渲染成正文） */
-  .guideBody{max-width:900px;font-size:15px;line-height:1.9;white-space:normal}
+  .guideBody{max-width:900px;font-size:15px;line-height:1.9;white-space:normal;filter:brightness(var(--text-bright,1));font-family:var(--body-font,"Microsoft YaHei","PingFang SC",system-ui,sans-serif)}
   .guideBody .g-h2{font-size:16px;font-weight:600;margin:22px 0 10px;color:var(--brand-d);border-bottom:1px solid var(--line);padding-bottom:6px}
   .guideBody .g-h3{font-size:14px;font-weight:600;margin:16px 0 8px}
   .guideBody .g-p{margin:8px 0}
@@ -165,21 +167,32 @@
   .vsplit:hover,.vsplit.dragging{background:var(--split)}
   .vsplit::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:3px;height:34px;border-radius:3px;background:var(--split);opacity:.8}
   .vsplit:hover::after,.vsplit.dragging::after{background:var(--brand)}
-  /* 翻页按钮：浮在正文右下角，半透明不挡字 */
+  /* 翻页按钮：浮在正文右下角；加深描边＋提高不透明度，浅色主题下也看得清 */
   .pagebtn{position:absolute;right:14px;bottom:14px;z-index:4;width:38px;height:38px;font-size:20px;line-height:1;
-    padding:0;border-radius:50%;opacity:.55;background:var(--btn);color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.15)}
-  .pagebtn:hover{opacity:1}
+    padding:0;border-radius:50%;opacity:.85;background:var(--btn);color:var(--ink);
+    border:1.5px solid var(--split);box-shadow:0 2px 8px rgba(0,0,0,.18)}
+  .pagebtn:hover{opacity:1;background:var(--btn-hover)}
   #pgPrev{right:58px}
+  /* PDF 视图的四钮从右往左排开，否则全叠在右下角一个点上（实测踩过的坑） */
+  #pdfEnd{right:14px}
+  #pdfNext{right:58px}
+  #pdfPrev{right:102px}
+  #pdfHome{right:146px}
+  /* 首页/尾页钮：正文左下角，与右侧翻一屏的浮钮对称 */
+  #pgHome,#pgEnd{left:14px}
+  #pgEnd{left:58px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>阅见<span class="ver">v5.0</span><span class="pill">本地运行 · 只认文字 · 图片不朗读</span><span id="voiceState" class="voice-state" style="font-weight:400"></span><span class="sp" style="flex:1"></span><select id="theme" class="mini" title="界面主题">
-      <option value="">豆沙绿（护眼）</option>
-      <option value="tavern">暗色主题</option>
-      <option value="sillytavern">酒馆主题</option>      <option value="parchment">羊皮纸</option>
-      <option value="white">纯白极简</option>
-    </select><button id="btnPaper" class="mini" title="给正文选一张底纹图片（按当前主题记忆）">底纹</button><input id="paperDim" class="mini" type="range" min="0" max="90" value="35" title="底纹遮罩浓度：压住图片让文字可读" style="width:72px;vertical-align:middle"><button id="btnClearPaper" class="mini" title="清除当前主题的底纹图片" style="display:none">×</button></h1>
+  <h1>阅见<span class="ver">v5.1</span><span class="pill">本地运行 · 只认文字 · 图片不朗读</span><span id="voiceState" class="voice-state" style="font-weight:400"></span><span class="sp" style="flex:1"></span><select id="theme" class="mini" title="界面主题">
+      <option value="">青笺缓阅（护眼）</option>
+      <option value="tavern">墨窗夜读</option>
+      <option value="sillytavern">灯檐阅卷</option>      <option value="parchment">故纸余温</option>
+      <option value="white">云宣净页</option>
+    </select><button id="btnPaper" class="mini" title="给正文选一张底纹图片（按当前主题记忆）">底纹</button><input id="paperDim" class="mini" type="range" min="0" max="90" value="35" title="底纹遮罩浓度：压住图片让文字可读" style="width:72px;vertical-align:middle"><button id="btnClearPaper" class="mini" title="清除当前主题的底纹图片" style="display:none">×</button><span style="color:var(--split)">│</span><select id="bodyFont" class="mini" title="正文字体（按当前主题记忆，缺字自动回退）">
+      <option value="">默认</option><option value="song">宋体</option><option value="kai">楷体</option><option value="fang">仿宋</option><option value="hei">黑体</option>
+    </select><input id="textDim" class="mini" type="range" min="55" max="145" value="100" title="正文文字明暗：往左变暗、往右变亮（按当前主题记忆）" style="width:72px;vertical-align:middle"><button id="btnBlank" class="mini" title="TXT 加载时压缩多余空行（全局开关）">去空行：关</button></h1>
   <div class="row" style="align-items:flex-start">
     <div id="scanMsg" class="msg" style="flex:1;margin-top:0;min-width:0"></div>
     <div id="ttsMsg" class="msg" style="flex:1;margin-top:0;min-width:0"></div>
@@ -211,12 +224,29 @@
             <button id="btnClearSearch" class="mini" title="清空搜索">✕</button>
           </div>
           <div class="content" id="content"><div class="empty">开始阅读</div></div>
+          <button id="pgHome" class="pagebtn" title="回到本节首页">«</button><button id="pgEnd" class="pagebtn" title="跳到本节末页">»</button>
           <button id="pgPrev" class="pagebtn" title="上一屏（← 键）">‹</button><button id="pgNext" class="pagebtn" title="下一屏（→ 键）">›</button>
         </div>
       </div>
       <div class="pdfview" id="pdfview" style="display:none">
         <button id="btnClosePdf" class="mini close-pdf" title="关闭 PDF，回到文字阅读">✕ 关闭 PDF</button>
-        <iframe id="pdfFrame" title="PDF 阅读"></iframe>
+        <!-- v5.1：pdf.js canvas 渲染，翻页瞬跳、缩放/双页状态跨翻页保持 -->
+        <div id="pdfCanvasWrap" style="flex:1;min-height:0;overflow:auto;display:flex;justify-content:center;align-items:flex-start;padding:16px;background:#e9edf0;gap:16px">
+          <canvas id="pdfCanvas" style="background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.2)"></canvas>
+          <canvas id="pdfCanvas2" class="hidden" style="background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.2)"></canvas>
+        </div>
+        <div id="pdfFallback" style="display:none;flex:1;min-height:0;flex-direction:column">
+          <iframe id="pdfFrame" title="PDF 阅读（内建兜底）" style="flex:1;border:0"></iframe>
+        </div>
+        <span id="pdfPageNo" class="hint" style="position:absolute;left:16px;bottom:20px;z-index:5;background:var(--btn);border:1px solid var(--line);border-radius:6px;padding:2px 9px;opacity:.9"></span>
+        <button id="pdfHome" class="pagebtn" title="回到 PDF 第一页">«</button>
+        <button id="pdfPrev" class="pagebtn" title="PDF 上一页">‹</button>
+        <button id="pdfNext" class="pagebtn" title="PDF 下一页">›</button>
+        <button id="pdfEnd" class="pagebtn" title="跳到 PDF 最后一页">»</button>
+        <select id="pdfZoom" class="mini" title="缩放" style="position:absolute;right:14px;top:9px;z-index:5;background:var(--btn)">
+          <option value="fit">整页适配</option><option value="0.75">75%</option><option value="1">100%</option><option value="1.5">150%</option><option value="2">200%</option>
+        </select>
+        <button id="pdfSpread" class="mini" title="切换单页/双页" style="position:absolute;right:100px;top:9px;z-index:5;background:var(--btn)">双页</button>
       </div>
     </div>
   </div>
@@ -224,8 +254,7 @@
   <div class="card">
     <div class="row">
       <input type="text" id="path" placeholder="粘贴读物文件夹，例如 D:\我的书">
-      <button id="btnBrowse">浏览</button>
-      <button class="primary" id="btnScan">加载书架</button><button class="primary" id="btnClearShelf" title="清空书架和阅读区画面（自动恢复记录保留，重启照旧回到上次读的书）">清除</button>
+      <button class="primary" id="btnScan" title="弹窗选一个文件夹，选完自动装进书架">加载书架</button><button class="primary" id="btnClearShelf" title="清空书架和阅读区画面（自动恢复记录保留，重启照旧回到上次读的书）">清除</button>
     </div>
   </div>
 </div>
@@ -233,7 +262,9 @@
 <script>
 const $ = id => document.getElementById(id);
 let books = [], curBook = null, chapters = [], curChap = 0;
-let fontLevel = 1;  // 0小 1中 2大
+// v5.1 任务3：字号三档扩五档，直接写 px；2 档为默认
+const FONT_SIZES=[13,15,17,19,22];
+let fontLevel = 2;
 
 // 收起/展开书架：开关按钮在栏头最左，不会被窄栏裁掉；收起后左缘留「»」重开按钮
 function setShelf(show){
@@ -286,7 +317,54 @@ function applyTheme(t){
   $("btnQuit").style.background=qc;
   $("btnQuit").style.borderColor=qc;
   applyPaper(t || "");
+  applyBodyPrefs(t || "");
 }
+
+// v5.1 任务7/8：正文文字明暗 + 字体，每主题各记各的
+// 字体用 CSS 字体栈：指定了就用该字体打头，缺字自动回退到系统默认，不会方框图
+const BODY_FONTS={
+  song:'"SimSun","宋体","Songti SC",serif',
+  kai:'"KaiTi","楷体","STKaiti",serif',
+  fang:'"FangSong","仿宋","STFangsong",serif',
+  hei:'"SimHei","黑体","Microsoft YaHei",sans-serif'
+};
+function applyBodyPrefs(t){
+  const root=document.documentElement;
+  const d=(savedState.text_dim||{})[t];
+  root.style.setProperty("--text-bright", (d==null?100:Number(d))/100);
+  const f=(savedState.body_font||{})[t]||"";
+  if(f && BODY_FONTS[f]) root.style.setProperty("--body-font", BODY_FONTS[f]);
+  else root.style.removeProperty("--body-font");
+  $("bodyFont").value=f;
+  $("textDim").value=d==null?100:d;
+  // 去空行是全局开关，不属于主题，回显一次即可
+  $("btnBlank").textContent="去空行："+(savedState.strip_blank?"开":"关");
+}
+$("textDim").addEventListener("input",()=>{
+  document.documentElement.style.setProperty("--text-bright",Number($("textDim").value)/100);
+});
+$("textDim").addEventListener("change",()=>{
+  const t=$("theme").value||""; const d=Object.assign({},savedState.text_dim||{});
+  d[t]=Number($("textDim").value); storeState({text_dim:d});
+});
+$("bodyFont").addEventListener("change",()=>{
+  const t=$("theme").value||""; const f=Object.assign({},savedState.body_font||{});
+  const v=$("bodyFont").value; if(v) f[t]=v; else delete f[t];
+  storeState({body_font:f}); applyBodyPrefs(t);
+});
+// 去空行：全局开关，改变的是 chapters 里的文本，切换时重新读原文再按新状态处理（保留当前章）
+$("btnBlank").onclick=async()=>{
+  const on=!savedState.strip_blank;
+  storeState({strip_blank:on});
+  $("btnBlank").textContent="去空行："+(on?"开":"关");
+  if(curBook && curBook.ext==="txt" && chapters[curChap]){
+    const keep=curChap;
+    const activeEl=$("bookList").querySelector(".item.active");
+    await openBook(curBook,activeEl);
+    renderChap(Math.min(keep,chapters.length-1));
+    msg($("scanMsg"),on?"已压掉 TXT 多余空行。":"已恢复原样空行。","ok");
+  }
+};
 
 // 底纹自定义图片＋可调遮罩：每个主题各配各的图，记进 state.json 的 paper 字段
 // paper = { "<主题>": {"image":"图片路径","dim":35}, ... }（dim=遮罩浓度 0-90）
@@ -334,15 +412,17 @@ function savePaper(){
 $("theme").addEventListener("change",()=>{ applyTheme($("theme").value); storeState({theme:$("theme").value||""}); });   // 选择落盘，重启保留
 
 // 底纹：弹系统窗口选图片 → 记到当前主题名下并立即应用
+// 选图窗口从"上次选图的目录"开始（跟书架路径分开记），没有记录才退回书架路径
 $("btnPaper").onclick=async()=>{
   let d;
-  try{ d=await api("/api/pick_image?path="+encodeURIComponent($("path").value.trim()),null,200000); }
+  try{ d=await api("/api/pick_image?path="+encodeURIComponent(savedState.paper_dir||$("path").value.trim()),null,200000); }
   catch(e){ msg($("scanMsg"),"选图失败："+(e.message||e),"err"); return; }
   if(!d.path) return; // 取消，不动
+  const dir=d.path.replace(/[\\/][^\\/]*$/,"");          // 取图片所在目录，下次选图从这里开
   const t=$("theme").value || "";
   const p=Object.assign({},savedState.paper||{});
   p[t]={image:d.path,dim:Number($("paperDim").value)||35};
-  storeState({paper:p});
+  storeState({paper:p,paper_dir:dir});
   applyPaper(t);
   msg($("scanMsg"),"底纹已换，拖旁边的滑杆调遮罩，图看不清字就往右拉","ok");
 };
@@ -360,9 +440,9 @@ $("btnClearPaper").onclick=()=>{
 };
 
 $("btnFont").onclick=()=>{
-  fontLevel=(fontLevel+1)%3;
+  fontLevel=(fontLevel+1)%FONT_SIZES.length;
   const body=document.getElementById("bodyText");
-  if(body){body.classList.remove("small","large");if(fontLevel===0)body.classList.add("small");if(fontLevel===2)body.classList.add("large");}
+  if(body) body.style.fontSize=FONT_SIZES[fontLevel]+"px";
 };
 
 function human(n){if(!n)return "0";const u=["B","KB","MB","GB","TB"];let i=0,x=n;while(x>=1024&&i<4){x/=1024;i++;}return (x>=10?x.toFixed(0):x.toFixed(1))+" "+u[i];}
@@ -397,8 +477,18 @@ function storeState(patch){
 }
 // 收起顶部音频控件（换书/开PDF时用）
 function hideAudio(){
-  const a=$("audio");a.pause();a.removeAttribute("src");a.load();
+  // 换书/开 PDF 时掐掉后台合成队列，别让旧书的朗读任务还在后台跑
+  if(typeof ttsKey!=="undefined" && ttsKey){
+    fetch("/api/tts_cancel",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({key:ttsKey})}).catch(()=>{});
+  }
+  ttsKey=null;
+  if(typeof ttsGen!=="undefined") ttsGen++;
+  if(typeof ttsPollTimer!=="undefined" && ttsPollTimer){ clearInterval(ttsPollTimer);ttsPollTimer=null; }
+  speaking=false;
+  const a=$("audio");a.pause();a.onended=null;a.removeAttribute("src");a.load();
   a.classList.add("hidden");$("btnStop").classList.add("hidden");
+  const bs=$("btnSpeak"); if(bs){bs.disabled=false;bs.textContent="朗读本章";}
 }
 
 // 启动自检：服务在不在？断线给醒目提示，不让界面假装活着
@@ -427,8 +517,8 @@ function hideAudio(){
     if(savedState.chap_w){$("chapPane").style.width=savedState.chap_w+"px";}
     if(savedState.last_path){
       $("path").value=savedState.last_path;
-      // 自动恢复：直接重新加载书架，并回到上次读的书和章节
-      $("btnScan").click();
+      // 自动恢复：直接重载书架（不点合并按钮，免得弹选文件夹的框），并回到上次读的书和章节
+      await loadShelf();
     }
   }catch(e){
     const box=document.createElement("div");
@@ -453,17 +543,10 @@ setInterval(()=>{ fetch("/api/ping").catch(()=>{}); }, 20000);
   }
 })();
 
-$("btnBrowse").onclick=async()=>{
-  const b=$("btnBrowse"); b.disabled=true;
-  let d;
-  try{ d=await api("/api/pick_folder?path="+encodeURIComponent($("path").value.trim()),null,200000); }
-  catch(e){ msg($("scanMsg"),"浏览失败："+(e.message||e),"err"); b.disabled=false; return; }
-  b.disabled=false;
-  if(d && d.path){ $("path").value=d.path; msg($("scanMsg"),"", ""); }
-  // 点「取消」时 d.path 为空：什么都不做，保留原输入。
-};
-
-$("btnScan").onclick=async()=>{
+// ---- v5.1 任务1：合并「浏览」+「加载书架」为一个按钮 ----
+// 点按钮 → 弹窗选文件夹 → 选完自动装书架；点「取消」什么都不做。
+// 扫描加载拆成独立的 loadShelf()，启动自动恢复直接调它，不弹选文件夹的框。
+async function loadShelf(){
   const b=$("btnScan");b.disabled=true;b.textContent="扫描中…";
   let r;
   try{
@@ -494,8 +577,8 @@ $("btnScan").onclick=async()=>{
         $("splitChap").style.display="none";
         hideAudio();
         $("pdfview").style.display="flex";
-        $("pdfFrame").src="/api/pdf?path="+encodeURIComponent(bk.path);
-        msg($("scanMsg"),"PDF 已在当前窗口打开，可翻页。扫描版无文字层，不朗读。","warn");
+        pdfOpen(bk.path);
+        msg($("scanMsg"),"PDF 已在当前窗口打开，可用浮钮或滚轮翻页。扫描版无文字层，不朗读。","warn");
         return;
       }
       // 从 PDF 切回文字书时，收起 PDF 区
@@ -529,6 +612,18 @@ $("btnScan").onclick=async()=>{
       setTimeout(()=>clearInterval(wait),8000);
     }
   }
+}
+
+// 合并按钮：弹窗选文件夹 → 选完自动装书架；「取消」则不动
+$("btnScan").onclick=async()=>{
+  const b=$("btnScan"); b.disabled=true; b.textContent="选目录…";
+  let d;
+  try{ d=await api("/api/pick_folder?path="+encodeURIComponent($("path").value.trim()),null,200000); }
+  catch(e){ msg($("scanMsg"),"选择文件夹失败："+(e.message||e),"err"); b.disabled=false; b.textContent="加载书架"; return; }
+  b.disabled=false; b.textContent="加载书架";
+  if(d && d.path){ $("path").value=d.path; }
+  else{ msg($("scanMsg"),"已取消，书架没动。",""); return; }   // 点「取消」：什么都不做
+  await loadShelf();
 };
 
 async function openBook(bk,el){
@@ -544,6 +639,10 @@ async function openBook(bk,el){
   }
   if(!r.ok){msg($("ttsMsg"),r.error||"读取失败","err");return;}
   chapters=r.chapters||[];curChap=0;
+  // v5.1 任务6：TXT 去空行开关——把连续空行压成一个（保留段落感），不改后端原文
+  if(curBook.ext==="txt" && savedState.strip_blank){
+    chapters.forEach(c=>{ c.text=c.text.replace(/\n[ \t]*\n(?:[ \t]*\n)+/g,"\n\n"); c.chars=c.text.length; });
+  }
   storeState({last_book:bk.name});
   $("chapList").innerHTML=chapters.map((c,i)=>`<div class="chap ${i===0?'active':''}" data-i="${i}">${esc(c.title)}<br><span class="meta">${c.chars} 字</span></div>`).join("");
   $("chapList").querySelectorAll(".chap").forEach(x=>x.onclick=()=>renderChap(+x.dataset.i));
@@ -556,6 +655,7 @@ async function openBook(bk,el){
 let hits = [], hitIdx = -1;
 
 // ---- 首开引导：迷你 Markdown 渲染（标题/列表/表格/加粗/代码，够用即可） ----
+// v5.1 任务4：渲染循环抽成公共 mdLite()，MD 书正文与引导页共用
 function mdInline(s){
   return esc(s).replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>").replace(/`([^`]+)`/g,"<code>$1</code>");
 }
@@ -566,7 +666,7 @@ function mdTable(rs){
   for(let i=1;i<rs.length;i++){ h+="<tr>"; rs[i].forEach(c=>h+="<td>"+mdInline(c)+"</td>"); h+="</tr>"; }
   return h+"</table>";
 }
-function renderGuide(src){
+function mdLite(src){
   const lines=src.split(/\r?\n/);
   let out="",rows=[];
   for(const L of lines){
@@ -576,7 +676,7 @@ function renderGuide(src){
       continue;
     }
     if(rows.length){ out+=mdTable(rows); rows=[]; }
-    if(/^#\s/.test(L)) continue;                      // 一级标题跳过（标题条里已有）
+    if(/^#\s/.test(L)) continue;                      // 一级标题跳过（章节标题条里已有）
     if(/^#{2,6}\s/.test(L)){
       const n=L.match(/^#+/)[0].length;
       out+= n===2 ? "<div class='g-h2'>"+mdInline(L.replace(/^#+\s/,""))+"</div>"
@@ -586,18 +686,25 @@ function renderGuide(src){
     else if(/^\s*[-*]\s/.test(L)) out+="<div class='g-li'>• "+mdInline(L.replace(/^\s*[-*]\s/,""))+"</div>";
     else if(/^\s*\d+\.\s/.test(L)) out+="<div class='g-li'>"+mdInline(L)+"</div>";
     else if(L.trim()) out+="<div class='g-p'>"+mdInline(L)+"</div>";
+    else out+="<div class='g-p'>&nbsp;</div>";        // 空行留一段空白，读着不挤
   }
   if(rows.length) out+=mdTable(rows);
-  $("content").innerHTML="<h3>阅见 · 使用说明</h3><div class='guideBody'>"+out+"</div>";
+  return out;
+}
+function renderGuide(src){
+  $("content").innerHTML="<h3>阅见 · 使用说明</h3><div class='guideBody'>"+mdLite(src)+"</div>";
 }
 
 function renderBody(){
   // 按当前搜索词渲染正文（有词就把命中包上 <mark>）
   const c=chapters[curChap];
-  const fs=["small","","large"][fontLevel];
   const q=$("searchInput").value.trim();
-  let inner;
-  if(q){
+  let inner, extraCls="";
+  // v5.1 任务4：MD 书按语法渲染（复用 mdLite）；搜索时退回纯文本高亮（渲染后的 HTML 没法直接套 mark）
+  if(curBook && curBook.ext==="md" && !q){
+    inner=mdLite(c.text);
+    extraCls=" guideBody";   // 借引导页的排版样式：不保留换行空白、段落有间距
+  }else if(q){
     const re=new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gi");
     let idx=0,out="",m;
     while((m=re.exec(c.text))){
@@ -609,7 +716,7 @@ function renderBody(){
   }else{
     inner=esc(c.text);
   }
-  $("content").innerHTML=`<h3>${esc(c.title)}</h3><div class="body ${fs}" id="bodyText">${inner}</div>`;
+  $("content").innerHTML=`<h3>${esc(c.title)}</h3><div class="body${extraCls}" id="bodyText" style="font-size:${FONT_SIZES[fontLevel]}px">${inner}</div>`;
 }
 
 function updateSearchCount(){
@@ -654,6 +761,9 @@ function snapToScreen(el){
 }
 $("pgPrev").onclick=()=>pageFlip(-1);
 $("pgNext").onclick=()=>pageFlip(1);
+// 首页/尾页：一键回本节开头 / 跳到本节末尾
+$("pgHome").onclick=()=>{ if(!curBook||!chapters[curChap]||$("pdfview").style.display!=="none")return; $("content").scrollTo({top:0,behavior:"smooth"}); };
+$("pgEnd").onclick=()=>{ if(!curBook||!chapters[curChap]||$("pdfview").style.display!=="none")return; const c=$("content"); c.scrollTo({top:c.scrollHeight,behavior:"smooth"}); };
 document.addEventListener("keydown",e=>{
   if(e.key!=="ArrowLeft"&&e.key!=="ArrowRight")return;
   const t=e.target;
@@ -691,6 +801,9 @@ $("btnClearShelf").onclick=()=>{
   // 从 PDF 视图切回阅读区（如果正开着 PDF）
   if($("pdfview").style.display!=="none"){
     $("pdfview").style.display="none";$("pdfFrame").src="about:blank";
+    pdfPath="";pdfPage=1;pdfPages=0;pdfDoc=null;pdfLoadSeq++;   // PDF 翻页状态一并归零
+    $("pdfCanvas").getContext("2d").clearRect(0,0,$("pdfCanvas").width,$("pdfCanvas").height);
+    $("pdfCanvas2").getContext("2d").clearRect(0,0,$("pdfCanvas2").width,$("pdfCanvas2").height);
     $("reader").style.display="";$("splitChap").style.display="";
   }
   // 清除＝真清空：恢复记录（last_path/last_book/last_chapter）一起抹掉，
@@ -699,9 +812,13 @@ $("btnClearShelf").onclick=()=>{
   msg($("scanMsg"),"已清空书架和阅读区（恢复记录一并抹掉，重启不再弹回）。","ok");
 };
 
-let speaking = false;      // 正在生成音频
-let ratePending = false;   // 生成期间又换了语速 → 打断旧生成，立即按新语速重跑
-let ttsCtrl = null;        // 当前合成请求的中断控制器（换语速时用来打断）
+let speaking = false;      // 正在生成或播放音频
+let ttsKey = null;         // 当前朗读任务的 key
+let ttsPollTimer = null;   // 合成进度轮询定时器
+let ttsSegFiles = [];      // 各段文件名（按序）
+let ttsSegIdx = 0;         // 正在播放第几段
+let ttsMode = "";          // "stream" 分段边合边播 / "full" 完整单文件
+let ttsGen = 0;            // 代次：换语速/重读时递增，让旧的异步回调自动作废
 
 function rateStr(){
   const mult=parseFloat($("rate").value);           // 1.2 表示 1.2 倍
@@ -709,38 +826,108 @@ function rateStr(){
   return (pct>=0?"+":"")+pct+"%";
 }
 
+// 停止当前朗读 + 掐掉后台合成队列（换语速/重读/停止都走这里）
+function cancelTts(){
+  ttsGen++;
+  if(ttsPollTimer){ clearInterval(ttsPollTimer); ttsPollTimer=null; }
+  if(ttsKey){ fetch("/api/tts_cancel",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({key:ttsKey})}).catch(()=>{}); }
+  const a=$("audio"); a.pause(); a.onended=null; a.removeAttribute("src"); a.load();
+  a.classList.add("hidden"); $("btnStop").classList.add("hidden");
+  speaking=false;
+  const b=$("btnSpeak"); b.disabled=false; b.textContent="朗读本章";
+}
+
+// 播放一个音频文件（段或完整），onended 回调由调用方设置
+function playAudioFile(name,onEnded){
+  const a=$("audio");
+  a.onended=onEnded||null;
+  a.src="/api/audio?name="+encodeURIComponent(name);
+  a.classList.remove("hidden");$("btnStop").classList.remove("hidden");
+  a.play().catch(()=>{});
+}
+
+// 分段边合边播：等第 i 段就绪就播，播完接第 i+1 段；拼整完成后可切完整单文件换真进度
+async function playSegments(gen,segs){
+  let idx=0;
+  while(idx<segs && gen===ttsGen){
+    // 等当前段就绪
+    let file=ttsSegFiles[idx];
+    while(!file && gen===ttsGen){
+      await new Promise(r=>setTimeout(r,400));
+      const st=await api("/api/tts_status?key="+encodeURIComponent(ttsKey),null,8000).catch(()=>null);
+      if(!st||!st.ok){ continue; }
+      if(st.parts) ttsSegFiles=segs>0?Array.from({length:segs},(_,k)=>st.parts[k]||""):[];
+      file=ttsSegFiles[idx];
+      if(st.error){ msg($("ttsMsg"),"合成失败："+st.error,"err"); cancelTts(); return; }
+    }
+    if(gen!==ttsGen) return;
+    ttsSegIdx=idx;
+    msg($("ttsMsg"),"边合边播：第 "+(idx+1)+" / "+segs+" 段（进度条为本段，全文进度按段计）","ok");
+    const thisIdx=idx;
+    await new Promise(resolve=>{
+      playAudioFile(file,()=>resolve());   // 本段播完 → resolve → 下一段
+    });
+    if(gen!==ttsGen) return;
+    idx++;
+  }
+  // 所有段播完
+  speaking=false;
+  const b=$("btnSpeak"); b.disabled=false; b.textContent="朗读本章";
+  msg($("ttsMsg"),"本章播放完毕。下次同章同语速点朗读，用完整音频秒开、进度条可拖全文。","ok");
+}
+
 $("btnSpeak").onclick=async()=>{
   if(speaking)return;
   if(!curBook||!chapters[curChap]){ msg($("ttsMsg"),"当前是使用说明页，先点「加载书架」装入书才能朗读。","err"); return; }
-  speaking=true;
-  const b=$("btnSpeak");b.disabled=true;
   const ch=chapters[curChap];
-  const est=Math.max(3,Math.round(ch.text.length/160));   // 实测约 160 字/秒（两路并行），给个预期
+  const rate=rateStr();
+  const key=curBook.path+"#"+curChap+"#"+rate;
+  const gen=++ttsGen;
+  speaking=true; ttsKey=key; ttsSegFiles=[]; ttsSegIdx=0;
+  const b=$("btnSpeak"); b.disabled=true;
+  const est=Math.max(3,Math.round(ch.text.length/160));
   b.textContent=`生成中…约${est>=60?Math.round(est/60)+"分钟":est+"秒"}`;
-  msg($("ttsMsg"),"正在合成音频（本章 "+ch.text.length+" 字）。首次生成需等待，同章同语速下次秒开。","ok");
+  msg($("ttsMsg"),"正在启动朗读（本章 "+ch.text.length+" 字）。首段合成完就开始播，不用等整章。","ok");
   let r;
-  try{
-    ttsCtrl=new AbortController();
-    r=await api("/api/tts",{text:ch.text,key:curBook.path+"#"+curChap+"#"+rateStr(),rate:rateStr()},180000,ttsCtrl.signal);
-  }catch(e){
+  try{ r=await api("/api/tts_begin",{text:ch.text,key:key,rate:rate},20000); }
+  catch(e){
     speaking=false;b.disabled=false;b.textContent="朗读本章";
-    if(ratePending){ ratePending=false; $("btnSpeak").click(); return; }  // 换语速主动打断，不算错误
-    msg($("ttsMsg"),"朗读失败："+(e.message||e),"err");return;
+    msg($("ttsMsg"),"启动失败："+(e.message||e),"err");return;
   }
-  speaking=false;b.disabled=false;b.textContent="朗读本章";
-  if(ratePending){ ratePending=false; $("btnSpeak").click(); return; }  // 生成期间换过语速，按新语速重来
-  if(!r.ok){msg($("ttsMsg"),r.error||"生成失败","err");return;}
-  $("audio").src="/api/audio?name="+encodeURIComponent(r.file);
-  $("audio").classList.remove("hidden");$("btnStop").classList.remove("hidden");
-  // 缓存保留策略：听完不删，下次同章同语速点朗读秒开；想清空用「清理并退出」
-  $("audio").play().catch(()=>{});
-  msg($("ttsMsg"), r.cached ? "缓存命中，秒开不用重新生成。" : "已生成音频，正在播放。可拖进度条、可下载。","ok");
+  if(gen!==ttsGen) return;   // 期间被换语速/停止接管
+  if(!r.ok){ speaking=false;b.disabled=false;b.textContent="朗读本章";msg($("ttsMsg"),r.error||"启动失败","err");return; }
+  b.textContent="朗读中…";
+  if(r.cached){
+    // 完整缓存命中：单文件播放，原生进度条即全文真实进度
+    ttsMode="full";
+    msg($("ttsMsg"),"缓存命中，秒开；进度条可拖全文。","ok");
+    playAudioFile(r.full,()=>{ speaking=false;b.disabled=false;b.textContent="朗读本章"; });
+  }else{
+    // 首次：分段边合边播
+    ttsMode="stream";
+    msg($("ttsMsg"),"首段合成中，好了就开始播；后台继续合成剩余段。","ok");
+    // 轮询：把已就绪的段记下来；拼整完成后更新提示（下章秒开已落缓存）
+    ttsPollTimer=setInterval(async()=>{
+      if(gen!==ttsGen){ clearInterval(ttsPollTimer);ttsPollTimer=null;return; }
+      const st=await api("/api/tts_status?key="+encodeURIComponent(key),null,8000).catch(()=>null);
+      if(!st||!st.ok)return;
+      if(st.parts) ttsSegFiles=Array.from({length:st.segs||r.segs},(_,k)=>st.parts[k]||"");
+      if(st.done && st.full){
+        msg($("ttsMsg"),"后台已拼成完整音频落缓存，下次秒开、进度条可拖全文。","ok");
+        clearInterval(ttsPollTimer);ttsPollTimer=null;
+      }
+    },1200);
+    playSegments(gen,r.segs);
+  }
 };
-$("btnStop").onclick=()=>{const a=$("audio");a.pause();a.currentTime=0;};
-// 换语速立即生效：闲时直接按新语速生成；生成中立即打断旧的、马上按新语速重来（不等旧的做完）
+$("btnStop").onclick=()=>{ cancelTts(); };
+// 换语速立即生效：直接掐掉旧任务（含后台队列），按新语速重来
 $("rate").addEventListener("change",()=>{
-  if(speaking){ ratePending=true; if(ttsCtrl) ttsCtrl.abort(); return; }
-  if(curBook&&chapters[curChap]) $("btnSpeak").click();
+  if(curBook&&chapters[curChap]){
+    if(speaking) cancelTts();
+    $("btnSpeak").click();
+  }
 });
 $("btnQuit").onclick=async()=>{
   $("audio").pause();
@@ -748,7 +935,132 @@ $("btnQuit").onclick=async()=>{
   // 后端会关掉 Edge 窗口，这里不必再提示；万一窗口没关，给一句兜底
   setTimeout(()=>{ try{ document.body.innerHTML='<div style="text-align:center;padding:80px;font-family:Microsoft YaHei;font-size:18px;color:#9a98a8">已退出，可以关掉这个窗口了。</div>'; }catch(e){} }, 800);
 };
+// ---- v5.1：PDF.js 本地渲染 —— canvas 换页瞬跳、缩放/双页跨翻页保持，失败回退内建阅读器 ----
+let pdfPath="", pdfPage=1, pdfPages=0, pdfDoc=null, pdfSpreadMode=false, pdfZoom="fit";
+let pdfRenderTask=null, pdfLoadSeq=0;
+
+// 动态加载 pdf.js（ES module），加载失败返回 false → 走内建阅读器兜底
+let pdfjsLib=null, pdfjsReady=null;
+function loadPdfjs(){
+  if(pdfjsReady) return pdfjsReady;
+  pdfjsReady=import("./pdfjs/pdf.min.mjs").then(lib=>{
+    lib.GlobalWorkerOptions.workerSrc="./pdfjs/pdf.worker.min.mjs";
+    pdfjsLib=lib; return true;
+  }).catch(e=>{ console.warn("pdf.js 加载失败，回退内建阅读器",e); return false; });
+  return pdfjsReady;
+}
+
+function pdfUseFallback(){
+  $("pdfCanvasWrap").style.display="none";
+  $("pdfFallback").style.display="flex";
+  $("pdfZoom").style.display="none";
+  $("pdfSpread").style.display="none";
+}
+
+async function pdfRenderPage(){
+  if(!pdfDoc) return;
+  const seq=pdfLoadSeq;
+  // 适配模式：按容器高度算缩放，让整页放下；否则用选定倍率
+  const p1=await pdfDoc.getPage(pdfPage);
+  let scale=pdfZoom==="fit" ? Math.max(0.3,Math.min(2.5,($("pdfCanvasWrap").clientHeight-40)/p1.getViewport({scale:1}).height)) : Number(pdfZoom);
+  if(seq!==pdfLoadSeq) return;   // 翻页太快，丢弃过期渲染
+  const dpr=window.devicePixelRatio||1;
+  const vp=p1.getViewport({scale:scale*dpr});
+  const c1=$("pdfCanvas"), ctx1=c1.getContext("2d");
+  c1.width=vp.width;c1.height=vp.height;
+  c1.style.width=(vp.width/dpr)+"px";c1.style.height=(vp.height/dpr)+"px";
+  if(pdfRenderTask) try{ pdfRenderTask.cancel(); }catch(e){}
+  pdfRenderTask=p1.render({canvasContext:ctx1,viewport:vp});
+  try{ await pdfRenderTask.promise; }catch(e){ if(e && e.name==="RenderingCancelledException")return; }
+  // 双页：渲染第 pdfPage+1 页到第二块 canvas
+  const c2=$("pdfCanvas2");
+  if(pdfSpreadMode && pdfPage+1<=pdfPages){
+    c2.classList.remove("hidden");
+    const p2=await pdfDoc.getPage(pdfPage+1);
+    const vp2=p2.getViewport({scale:scale*dpr});
+    c2.width=vp2.width;c2.height=vp2.height;
+    c2.style.width=(vp2.width/dpr)+"px";c2.style.height=(vp2.height/dpr)+"px";
+    if(pdfRenderTask) try{ pdfRenderTask.cancel(); }catch(e){}
+    pdfRenderTask=p2.render({canvasContext:c2.getContext("2d"),viewport:vp2});
+    try{ await pdfRenderTask.promise; }catch(e){}
+  }else{
+    c2.classList.add("hidden");
+  }
+  pdfLabel();
+}
+
+function pdfLabel(){
+  if(pdfSpreadMode && pdfPages){
+    $("pdfPageNo").textContent="第 "+pdfPage+"–"+Math.min(pdfPage+1,pdfPages)+" / "+pdfPages+" 页";
+  }else{
+    $("pdfPageNo").textContent=pdfPages?("第 "+pdfPage+" / "+pdfPages+" 页"):"第 "+pdfPage+" 页";
+  }
+}
+
+function pdfGo(p){
+  if(!pdfPath)return;
+  const step=pdfSpreadMode?2:1;
+  const max=pdfPages||p;
+  pdfPage=Math.max(1,Math.min(p,max));
+  pdfLoadSeq++;   // 作废过期的异步渲染
+  pdfRenderPage();
+}
+
+async function pdfOpen(path){
+  pdfPath=path; pdfPage=1; pdfPages=0; pdfLoadSeq=0; pdfDoc=null;
+  pdfLoadSeq++;
+  $("pdfCanvasWrap").style.display="flex";
+  $("pdfFallback").style.display="none";
+  $("pdfZoom").style.display="";
+  $("pdfSpread").style.display="";
+  $("pdfPageNo").textContent="加载中…";
+  const ok=await loadPdfjs();
+  if(!ok){ // 回退：内建阅读器整载（v5.1 老路）
+    pdfUseFallback();
+    $("pdfFrame").src="/api/pdf?path="+encodeURIComponent(path)+"#page=1&zoom=page-fit";
+    api("/api/pdfpages?path="+encodeURIComponent(path),null,8000)
+      .then(r=>{ pdfPages=r.pages||0; pdfLabel(); $("pdfEnd").style.display=pdfPages?"":"none"; })
+      .catch(()=>{ $("pdfEnd").style.display="none"; });
+    return;
+  }
+  try{
+    const loadingTask=pdfjsLib.getDocument("/api/pdf?path="+encodeURIComponent(path));
+    pdfDoc=await loadingTask.promise;
+    pdfPages=pdfDoc.numPages;
+    pdfLabel();
+    $("pdfEnd").style.display="";
+    pdfRenderPage();
+    msg($("scanMsg"),"PDF 已用本地渲染打开：翻页瞬跳、缩放/双页跨页保持。滚轮翻页。","ok");
+  }catch(e){
+    console.warn("pdf.js 解析失败，回退内建阅读器",e);
+    pdfUseFallback();
+    $("pdfFrame").src="/api/pdf?path="+encodeURIComponent(path)+"#page=1&zoom=page-fit";
+    msg($("scanMsg"),"本地渲染打不开这个 PDF，已回退内建阅读器。","warn");
+  }
+}
+
+$("pdfHome").onclick=()=>pdfGo(1);
+$("pdfPrev").onclick=()=>pdfGo(pdfPage-(pdfSpreadMode?2:1));
+$("pdfNext").onclick=()=>pdfGo(pdfPage+(pdfSpreadMode?2:1));
+$("pdfEnd").onclick=()=>{ if(pdfPages) pdfGo(pdfSpreadMode?Math.max(1,pdfPages-1):pdfPages); };
+$("pdfZoom").addEventListener("change",()=>{ pdfZoom=$("pdfZoom").value; if(pdfDoc) pdfRenderPage(); });
+$("pdfSpread").onclick=()=>{
+  pdfSpreadMode=!pdfSpreadMode;
+  $("pdfSpread").textContent=pdfSpreadMode?"单页":"双页";
+  if(pdfDoc) pdfRenderPage();
+};
+// 滚轮按页翻（pdf.js 渲染区），跟按钮同一套页格；grep pdfCanvasWrap 容器
+$("pdfCanvasWrap").addEventListener("wheel",e=>{
+  if(!pdfDoc) return;
+  if(Math.abs(e.deltaY)<8) return;
+  e.preventDefault();
+  pdfGo(pdfPage+(e.deltaY>0?1:-1));
+},{passive:false});
+
 $("btnClosePdf").onclick=()=>{
+  pdfPath="";pdfPage=1;pdfPages=0;pdfDoc=null;pdfLoadSeq++;
+  $("pdfCanvas").getContext("2d").clearRect(0,0,$("pdfCanvas").width,$("pdfCanvas").height);
+  $("pdfCanvas2").getContext("2d").clearRect(0,0,$("pdfCanvas2").width,$("pdfCanvas2").height);
   $("pdfview").style.display="none";
   $("pdfFrame").src="about:blank";
   $("reader").style.display="";
