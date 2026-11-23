@@ -68,14 +68,52 @@
     --err-bg:#fdeceb;--err-fg:#c0392b;--err-line:#f3c4bd;
     --warn-bg:#fff6e0;--warn-fg:#8a6d1a;--warn-line:#ecd9a0;
   }
+  /* 主题：樱吹雪卷（樱粉白系·女性向：近白粉纸·暗玫粉主色） */
+  html[data-theme="sakura"]{
+    --topbar:#fbdfe7;--topbar-line:#f3ccd8;
+    --bg:#fbe9f0;--card:#fff3f7;--paper:#fef8fa;--line:#f0ccd8;--ink:#5f3a44;--muted:#a07280;
+    --brand:#d97289;--brand-d:#c25e76;--chip:#fbe3ea;
+    --panel:#fae9ee;--hover:#f9e6ec;--active:#f6d7e1;--btn:#fff5f8;--btn-hover:#faeaef;
+    --mark:#ffd9e2;--mark-active:#e87f9d;
+    --pill-bg:#f9dfe8;--pill-fg:#a03055;--code:#faeef2;--split:#e7b9c8;
+    --ok-bg:#e8f6ec;--ok-fg:#2e7d54;--ok-line:#c2e5cf;
+    --err-bg:#fdeceb;--err-fg:#c0392b;--err-line:#f3c4bd;
+    --warn-bg:#fff6e0;--warn-fg:#8a6d1a;--warn-line:#ecd9a0;
+  }
+  /* 主题：豆蔻温笺（豆沙粉系·稳重耐读：豆沙纸·暗豆沙主色） */
+  html[data-theme="dousha"]{
+    --topbar:#f3d9d8;--topbar-line:#e6cbc9;
+    --bg:#eedddd;--card:#f9eae8;--paper:#fbf1ef;--line:#dcc3c1;--ink:#4d3a38;--muted:#967572;
+    --brand:#b05e6e;--brand-d:#9c505f;--chip:#f2dcd9;
+    --panel:#f5e4e1;--hover:#f4e1dd;--active:#eed2cd;--btn:#fdf3f1;--btn-hover:#f6e6e2;
+    --mark:#ffd9c9;--mark-active:#e0906a;
+    --pill-bg:#f1dbd7;--pill-fg:#8c4a56;--code:#f7ebe8;--split:#d5a8a2;
+    --ok-bg:#eaf4ea;--ok-fg:#3a7a52;--ok-line:#c8e0cc;
+    --err-bg:#fbe9e4;--err-fg:#b0402e;--err-line:#eccdc2;
+    --warn-bg:#fff3dd;--warn-fg:#8a641a;--warn-line:#ecd6a0;
+  }
+  /* 主题：青峦染绢（古风宋瓷系：月白绢纸·深黛青主色·古铜补色，低饱和高灰调） */
+  html[data-theme="qingluan"]{
+    --topbar:#ebe6da;--topbar-line:#dcd5c4;
+    --bg:#e6e0d2;--card:#f2eee4;--paper:#f6f3ec;--line:#d5cfbf;--ink:#33373d;--muted:#75726a;
+    --brand:#3f5e60;--brand-d:#354f51;--chip:#e7e3d6;
+    --panel:#edeadd;--hover:#ece8db;--active:#dde0d6;--btn:#f4f1ea;--btn-hover:#ebe7db;
+    --mark:#e9dfc0;--mark-active:#c9a24e;
+    --pill-bg:#e3ddcf;--pill-fg:#3f5e60;--code:#eef0ec;--split:#c2bca9;
+    --ok-bg:#e4ece2;--ok-fg:#4a7a5a;--ok-line:#c5d6c4;
+    --err-bg:#f0e2da;--err-fg:#a5502f;--err-line:#dcc4b3;
+    --warn-bg:#efe7cf;--warn-fg:#8a6d2a;--warn-line:#dbcda0;
+  }
   *{box-sizing:border-box}
   /* 整页锁死一屏：外层不再出滚动条，只有书架/章节/正文三处内滚 */
   html,body{height:100%;overflow:hidden}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;font-size:14px;line-height:1.6}
   .wrap{height:100%;display:flex;flex-direction:column;padding:10px 14px;gap:8px;min-height:0}
-  h1{font-size:18px;margin:0;font-weight:600;display:flex;flex-wrap:wrap;align-items:center;gap:8px;flex:0 0 auto;background:var(--topbar,transparent);border:1px solid var(--topbar-line,transparent);border-radius:10px;padding:7px 14px}
+  h1{font-size:18px;margin:0;font-weight:600;display:flex;flex-wrap:wrap;align-items:center;gap:5px;flex:0 0 auto;background:var(--topbar,transparent);border:1px solid var(--topbar-line,transparent);border-radius:10px;padding:5px 10px}
   .ver{font-size:11px;font-weight:400;opacity:.6;white-space:nowrap}
   .pill{font-size:11.5px;background:var(--pill-bg);color:var(--pill-fg);border-radius:20px;padding:2px 9px;font-weight:400}
+  /* 顶栏控件文字标签（主题/字体加粗）：不换行、不占位过大，随主题文字色走 */
+  .ctl-label{font-size:12px;font-weight:600;color:var(--ink);white-space:nowrap}
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;flex:0 0 auto}
   .row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
   input[type=text]{flex:1;min-width:240px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-size:14px;background:var(--btn);color:var(--ink)}
@@ -95,7 +133,7 @@
   .pane.right{flex:1;min-width:0}
   .pane h2{font-size:14px;margin:0;padding:9px 14px;background:var(--panel);border-bottom:1px solid var(--line);font-weight:600;display:flex;align-items:center;gap:8px;flex:0 0 auto;white-space:nowrap;overflow:hidden}
   .pane h2 .sp{flex:1}
-  .mini{font-size:12px;padding:3px 9px;border:1px solid var(--line);border-radius:6px;background:var(--btn);cursor:pointer;color:var(--muted)}
+  .mini{font-size:12px;padding:3px 7px;border:1px solid var(--line);border-radius:6px;background:var(--btn);cursor:pointer;color:var(--muted)}
   .mini:hover{background:var(--panel);color:var(--ink)}
   select.mini{padding:4px 7px;font-size:12px;color:var(--ink)}
   /* 滑杆不能套 .mini 的 padding——Chrome 会把滑块活动范围缩进 padding 里，拖不到头。单独给零 padding 样式 */
@@ -103,9 +141,13 @@
   input[type=range].mini::-webkit-slider-thumb{width:14px;height:14px}
   .mini.speak{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600;padding:4px 12px}
   .mini.speak:hover{background:var(--brand-d);border-color:var(--brand-d)}
-  /* 统一按钮色：章节/字号与「加载书架」同色；退出工具同色相、明度提亮 10% */
-  #btnToggleChap,#btnFont{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
-  #btnToggleChap:hover,#btnFont:hover{background:var(--brand-d);border-color:var(--brand-d)}
+  /* 统一按钮色：章节/全屏/字号与「加载书架」同色；退出工具同色相、明度提亮 10% */
+  #btnToggleChap,#btnFull,#btnFont,#btnResetView{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+  #btnToggleChap:hover,#btnFull:hover,#btnFont:hover,#btnResetView:hover{background:var(--brand-d);border-color:var(--brand-d)}
+  /* [demo] 沉浸全屏：藏大顶栏/消息行/书架/章节目录，只留细阅读排＋搜索＋正文＋底部加载条 */
+  body.immersive #topbar,body.immersive #msgRow{display:none}
+  body.immersive #shelfPane,body.immersive #splitShelf,body.immersive #btnOpenShelf{display:none!important}
+  body.immersive #chapPane,body.immersive #splitChap,body.immersive #loadCard{display:none!important}
   /* 退出工具：主色的补色（每主题硬编码，色环转 180°、明度饱和度同主色），背景由 applyTheme 按主题设置 */
   #btnQuit{color:#fff;font-weight:600}
   #btnQuit:hover{filter:brightness(1.1)}
@@ -152,6 +194,13 @@
   .guideBody .g-h3{font-size:14px;font-weight:600;margin:16px 0 8px}
   .guideBody .g-p{margin:8px 0}
   .guideBody .g-li{margin:5px 0 5px 14px}
+  .guideBody .g-quote{margin:10px 0;padding:8px 14px;border-left:3px solid var(--brand);background:var(--panel);border-radius:0 8px 8px 0;color:var(--muted)}
+  /* [demo] v5.2 划词翻译：选区末尾浮「译」钮＋结果气泡 */
+  #btnTran{position:absolute;z-index:60;display:none;padding:2px 10px;font-size:12px}
+  #tranTip{position:absolute;z-index:61;display:none;max-width:420px;background:var(--card);border:1px solid var(--line);
+    border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.18);padding:10px 12px;font-size:14px;line-height:1.7;
+    color:var(--ink);white-space:normal}
+  #tranTip .t-src{color:var(--muted);font-size:12px;margin-bottom:4px;word-break:break-all}
   .guideBody .g-hr{border:0;border-top:1px dashed var(--line);margin:16px 0}
   .guideBody .g-table{border-collapse:collapse;margin:10px 0;width:100%;max-width:720px}
   .guideBody .g-table th,.guideBody .g-table td{border:1px solid var(--line);padding:5px 10px;font-size:13px;text-align:left}
@@ -185,15 +234,18 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>阅见<span class="ver">v5.1</span><span class="pill">本地运行 · 只认文字 · 图片不朗读</span><span id="voiceState" class="voice-state" style="font-weight:400"></span><span class="sp" style="flex:1"></span><select id="theme" class="mini" title="界面主题">
+  <h1 id="topbar">阅见<span class="ver">v5.2</span><span class="pill">本地运行 · 图片不朗读</span><span id="voiceState" class="voice-state" style="font-weight:400"></span><span class="sp" style="flex:1"></span><b class="ctl-label">主题</b><select id="theme" class="mini" title="界面主题">
       <option value="">青笺缓阅（护眼）</option>
       <option value="tavern">墨窗夜读</option>
       <option value="sillytavern">灯檐阅卷</option>      <option value="parchment">故纸余温</option>
       <option value="white">云宣净页</option>
-    </select><button id="btnPaper" class="mini" title="给正文选一张底纹图片（按当前主题记忆）">底纹</button><input id="paperDim" class="mini" type="range" min="0" max="90" value="35" title="底纹遮罩浓度：压住图片让文字可读" style="width:72px;vertical-align:middle"><button id="btnClearPaper" class="mini" title="清除当前主题的底纹图片" style="display:none">×</button><span style="color:var(--split)">│</span><select id="bodyFont" class="mini" title="正文字体（按当前主题记忆，缺字自动回退）">
+      <option value="sakura">樱吹雪卷</option>
+      <option value="dousha">豆蔻温笺</option>
+      <option value="qingluan">青峦染绢</option>
+    </select><button id="btnPaper" class="mini" title="给正文选一张底纹图片（按当前主题记忆）">底纹</button><input id="paperDim" class="mini" type="range" min="0" max="90" value="35" title="底纹遮罩浓度：压住图片让文字可读" style="width:58px;vertical-align:middle"><button id="btnClearPaper" class="mini" title="清除当前主题的底纹图片" style="display:none">×</button><span style="color:var(--split)">│</span><b class="ctl-label">字体</b><select id="bodyFont" class="mini" title="正文字体（按当前主题记忆，缺字自动回退）">
       <option value="">默认</option><option value="song">宋体</option><option value="kai">楷体</option><option value="fang">仿宋</option><option value="hei">黑体</option>
-    </select><input id="textDim" class="mini" type="range" min="55" max="145" value="100" title="正文文字明暗：往左变暗、往右变亮（按当前主题记忆）" style="width:72px;vertical-align:middle"><button id="btnBlank" class="mini" title="TXT 加载时压缩多余空行（全局开关）">去空行：关</button></h1>
-  <div class="row" style="align-items:flex-start">
+    </select><button class="mini" id="btnFont" title="切换字号（正文五档，默认 15px）">字号</button><input id="textDim" class="mini" type="range" min="55" max="145" value="100" title="正文文字明暗：往左变暗、往右变亮（按当前主题记忆）" style="width:58px;vertical-align:middle"><button id="btnBlank" class="mini" title="TXT 加载时压缩多余空行（全局开关）">去空行：关</button><button class="mini" id="btnResetView" title="一键恢复：主题、字体、字号回默认，清除底纹，两根滑杆归中">一键恢复</button><button id="btnQuit" class="mini" title="立即退出并清空音频缓存（点 ✕ 关窗则保留缓存，下次朗读秒开）">清理并退出</button></h1>
+  <div class="row" id="msgRow" style="align-items:flex-start">
     <div id="scanMsg" class="msg" style="flex:1;margin-top:0;min-width:0"></div>
     <div id="ttsMsg" class="msg" style="flex:1;margin-top:0;min-width:0"></div>
   </div>
@@ -206,12 +258,12 @@
     <div class="vsplit" id="splitShelf" title="拖动调整书架宽度"></div>
     <button id="btnOpenShelf" class="mini" title="展开书架" style="display:none;flex:0 0 auto;align-self:flex-start;margin:0">»</button>
     <div class="pane right">
-      <h2>阅读 <span id="readerTitle" class="hint" style="font-weight:400"></span><span class="sp"></span><select id="rate" class="mini" title="朗读语速">
+      <h2><button class="mini" id="btnToggleChap" title="收起/展开章节目录">章节</button>阅读 <span id="readerTitle" class="hint" style="font-weight:400"></span><span class="sp"></span><select id="rate" class="mini" title="朗读语速">
           <option value="0.6">0.6倍</option><option value="0.8">0.8倍</option>
           <option value="1.0" selected>1.0倍</option><option value="1.2">1.2倍</option>
           <option value="1.4">1.4倍</option><option value="1.6">1.6倍</option>
           <option value="1.8">1.8倍</option><option value="2.0">2.0倍</option>
-        </select><button id="btnSpeak" class="mini speak" title="用晓晓朗读当前章节">朗读本章</button><button id="btnStop" class="mini hidden" title="停止播放">停止</button><audio id="audio" class="hidden" controls></audio><button class="mini" id="btnToggleChap" title="收起/展开章节目录">章节</button><button class="mini" id="btnFont" title="切换字号">字号</button><button id="btnQuit" class="mini" title="立即退出并清空音频缓存（点 ✕ 关窗则保留缓存，下次朗读秒开）">清理并退出</button></h2>
+        </select><button id="btnSpeak" class="mini speak" title="用晓晓朗读当前章节">朗读本章</button><button id="btnStop" class="mini hidden" title="停止播放">停止</button><audio id="audio" class="hidden" controls></audio><button class="mini" id="btnFull" title="沉浸全屏：藏起顶栏和书架只留正文，再点一次或按 ESC 还原">全屏</button></h2>
       <div class="reader" id="reader">
         <div class="chapters" id="chapPane"><div class="h">章节目录</div><div class="chapList" id="chapList"><div class="empty" style="padding:40px 10px">选一章节</div></div></div>
         <div class="vsplit" id="splitChap" title="拖动调整章节目录宽度"></div>
@@ -224,6 +276,8 @@
             <button id="btnClearSearch" class="mini" title="清空搜索">✕</button>
           </div>
           <div class="content" id="content"><div class="empty">开始阅读</div></div>
+          <button id="btnTran" class="mini" title="翻译选中的文字">译</button>
+          <div id="tranTip"></div>
           <button id="pgHome" class="pagebtn" title="回到本节首页">«</button><button id="pgEnd" class="pagebtn" title="跳到本节末页">»</button>
           <button id="pgPrev" class="pagebtn" title="上一屏（← 键）">‹</button><button id="pgNext" class="pagebtn" title="下一屏（→ 键）">›</button>
         </div>
@@ -251,7 +305,7 @@
     </div>
   </div>
 
-  <div class="card">
+  <div class="card" id="loadCard">
     <div class="row">
       <input type="text" id="path" placeholder="粘贴读物文件夹，例如 D:\我的书">
       <button class="primary" id="btnScan" title="弹窗选一个文件夹，选完自动装进书架">加载书架</button><button class="primary" id="btnClearShelf" title="清空书架和阅读区画面（自动恢复记录保留，重启照旧回到上次读的书）">清除</button>
@@ -262,9 +316,10 @@
 <script>
 const $ = id => document.getElementById(id);
 let books = [], curBook = null, chapters = [], curChap = 0;
-// v5.1 任务3：字号三档扩五档，直接写 px；2 档为默认
+// v5.1 任务3：字号三档扩五档，直接写 px；默认 15px（索引 1）
 const FONT_SIZES=[13,15,17,19,22];
-let fontLevel = 2;
+const DEFAULT_FONT_LEVEL=1;
+let fontLevel = DEFAULT_FONT_LEVEL;
 
 // 收起/展开书架：开关按钮在栏头最左，不会被窄栏裁掉；收起后左缘留「»」重开按钮
 function setShelf(show){
@@ -304,9 +359,9 @@ makeSplit($("splitShelf"),$("shelfPane"),"shelf_w",140);
 makeSplit($("splitChap"),$("chapPane"),"chap_w",120);
 
 // 主题切换：换 html 的 data-theme，整套配色跟着变；选择记进 state.json
-const THEME_BAR={"":"#cfe6d0","tavern":"#15161a","sillytavern":"#2b2d31","parchment":"#e6dabf","white":"#f2f3f5"};
-// 各主题主色的精确补色（色环转 180°，明度饱和度同主色）：豆沙绿→绛紫、暗色→玫红、酒馆→青蓝、羊皮纸→靛蓝、纯白→赭橙
-const THEME_QC={"":"#7d2e57","tavern":"#b84558","sillytavern":"#5ca5b9","parchment":"#34618b","white":"#8e4d2e"};
+const THEME_BAR={"":"#cfe6d0","tavern":"#15161a","sillytavern":"#2b2d31","parchment":"#e6dabf","white":"#f2f3f5","sakura":"#fbe9f0","dousha":"#eedddd","qingluan":"#e6e0d2"};
+// 各主题主色的精确补色（色环转 180°，明度饱和度同主色）：豆沙绿→绛紫、暗色→玫红、酒馆→青蓝、羊皮纸→靛蓝、纯白→赭橙、樱吹雪卷→粉青、豆蔻温笺→灰青绿
+const THEME_QC={"":"#7d2e57","tavern":"#b84558","sillytavern":"#5ca5b9","parchment":"#34618b","white":"#8e4d2e","sakura":"#72d9c3","dousha":"#66b8a8","qingluan":"#96794f"};
 function applyTheme(t){
   if(t) document.documentElement.setAttribute("data-theme",t);
   else document.documentElement.removeAttribute("data-theme");
@@ -369,7 +424,7 @@ $("btnBlank").onclick=async()=>{
 // 底纹自定义图片＋可调遮罩：每个主题各配各的图，记进 state.json 的 paper 字段
 // paper = { "<主题>": {"image":"图片路径","dim":35}, ... }（dim=遮罩浓度 0-90）
 // 遮罩色取各主题纸色（硬编码表，与 CSS --paper 一致）：亮主题白雾压亮图、暗主题深雾压暗图
-const THEME_PAPER={"":"#f2f8ec","tavern":"#232529","sillytavern":"#242736","parchment":"#faf3e0","white":"#ffffff"};
+const THEME_PAPER={"":"#f2f8ec","tavern":"#232529","sillytavern":"#242736","parchment":"#faf3e0","white":"#ffffff","sakura":"#fef8fa","dousha":"#fbf1ef","qingluan":"#f6f3ec"};
 function applyPaper(t,dimOverride){
   const c=$("content"), cfg=(savedState.paper||{})[t];
   const hasImg = cfg && cfg.image;
@@ -439,10 +494,33 @@ $("btnClearPaper").onclick=()=>{
   msg($("scanMsg"),"已清除该主题的底纹","ok");
 };
 
+// 字号单一入口：点按钮换下一档、一键恢复回默认，都走这里，避免两处逻辑分叉
+function setFont(size){
+  $("btnFont").textContent="字号 "+size;
+  const body=document.getElementById("bodyText");
+  if(body) body.style.fontSize=size+"px";
+}
 $("btnFont").onclick=()=>{
   fontLevel=(fontLevel+1)%FONT_SIZES.length;
-  const body=document.getElementById("bodyText");
-  if(body) body.style.fontSize=FONT_SIZES[fontLevel]+"px";
+  const size=FONT_SIZES[fontLevel];
+  setFont(size);
+  if(!document.getElementById("bodyText")) msg($("scanMsg"),"字号已设为 "+size+"px，打开章节后生效。","ok");
+};
+setFont(FONT_SIZES[fontLevel]);
+
+// 一键恢复：主题、字体、字号回默认；底纹全清；两根滑杆归中
+// 走与正常切换同一条落盘链路：清掉字体记忆 → 主题下拉回空 → applyTheme 全量刷新（配色/补色/底纹/正文首选项）→ 落盘
+$("btnResetView").onclick=()=>{
+  // 只清「默认主题」名下的字体/明暗记忆，别把用户在其他主题里存的偏好一起抹掉
+  const f=Object.assign({},savedState.body_font||{}); delete f[""];
+  const td=Object.assign({},savedState.text_dim||{}); delete td[""];
+  storeState({theme:"", body_font:f, text_dim:td, paper:{}});  // 底纹全清：所有主题的底纹图一并抹掉，回到干净初始
+  applyTheme("");
+  fontLevel=DEFAULT_FONT_LEVEL; setFont(FONT_SIZES[fontLevel]);  // 字号回默认 15px
+  // 两根滑杆归正中：底纹遮罩量程 0~90 → 45，正文明暗量程 55~145 → 100
+  $("paperDim").value=45;
+  $("textDim").value=100;
+  msg($("scanMsg"),"已恢复默认主题、字体和字号（15px），底纹已清除，两根滑杆已归中。","ok");
 };
 
 function human(n){if(!n)return "0";const u=["B","KB","MB","GB","TB"];let i=0,x=n;while(x>=1024&&i<4){x/=1024;i++;}return (x>=10?x.toFixed(0):x.toFixed(1))+" "+u[i];}
@@ -677,6 +755,14 @@ function mdLite(src){
     }
     if(rows.length){ out+=mdTable(rows); rows=[]; }
     if(/^#\s/.test(L)) continue;                      // 一级标题跳过（章节标题条里已有）
+    if(/^\s*>\s?/.test(L)){                            // 引用行（> 别称：xxx）
+      out+="<div class='g-quote'>"+mdInline(L.replace(/^\s*>\s?/,""))+"</div>";
+      continue;
+    }
+    if(/^\s*<[^>]+>\s*$/.test(L.trim())||/^\s*<\/[^>]+>\s*$/.test(L)){   // 整行 HTML 块（<div>/<img> 等）原样放行
+      out+=L.trim();
+      continue;
+    }
     if(/^#{2,6}\s/.test(L)){
       const n=L.match(/^#+/)[0].length;
       out+= n===2 ? "<div class='g-h2'>"+mdInline(L.replace(/^#+\s/,""))+"</div>"
@@ -749,15 +835,53 @@ function pageFlip(dir){
   if(h<=0)return;
   if(dir>0 && c.scrollTop+c.clientHeight>=c.scrollHeight-2)return;   // 已到末页，不再翻
   if(dir<0 && c.scrollTop<=0)return;                                  // 已到首页
-  c.scrollBy({top:dir*h,behavior:"smooth"});
+  // v5.2 翻页吃字修复：落点对齐行首——翻页分界线压着的那行字保持完整，
+  // 以它的行顶作新页开头，不再把一行切成上下两半
+  const fold=c.scrollTop+dir*h;                                       // 目标分界线的文档坐标
+  if(fold<=0){ c.scrollTo({top:0,behavior:"smooth"}); return; }
+  // 先瞬移到目标位置，再读顶边压住的行（caretRangeFromPoint 只能取视口内的点）
+  const keep=c.scrollTop;
+  c.scrollTop=Math.max(0,Math.min(fold,c.scrollHeight-h));
+  let top=null;                                                       // 顶边压住那行的行顶（文档坐标）
+  try{
+    const cRect=c.getBoundingClientRect();
+    const cr=document.caretRangeFromPoint(cRect.left+c.clientWidth/2, cRect.top+2);
+    if(cr && cr.startContainer.nodeType===3){
+      const rg=document.createRange();
+      rg.setStart(cr.startContainer,cr.startOffset);
+      rg.setEnd(cr.startContainer,Math.min(cr.startContainer.length,cr.startOffset+1));
+      const rc=rg.getBoundingClientRect();
+      if(rc.height) top=rc.top-cRect.top+c.scrollTop;
+    }
+  }catch(e){}
+  const aligned=Math.abs(top-c.scrollTop)<=1;                         // 顶边正好是行首，整屏翻就行
+  const progress=dir>0 ? top>keep+1 : top<keep-1;
+  if(top!=null && !aligned && progress){
+    c.scrollTo({top:top,behavior:"smooth"});                          // 行被压住 → 以行顶作新页首，行完整了
+  }else{
+    c.scrollTo({top:fold,behavior:"smooth"});                         // 没压住行 / 界外 → 维持整屏翻
+  }
 }
-// 把命中元素对齐到整屏页格：算它在第几屏，直接跳到那一屏的开头
+// 把命中对齐到页首：v5.2 改为对齐命中所在行的行顶（原按整屏取整会把行切半）
 function snapToScreen(el){
   const c=$("content");
   const h=c.clientHeight;
   if(h<=0){el.scrollIntoView({block:"center"});return;}
-  const top=el.getBoundingClientRect().top-c.getBoundingClientRect().top+c.scrollTop;
-  c.scrollTo({top:Math.floor(top/h)*h,behavior:"smooth"});
+  let top=null;
+  try{
+    const r=el.getBoundingClientRect();
+    const cr=document.caretRangeFromPoint(r.left+r.width/2, r.top+1);
+    if(cr && cr.startContainer.nodeType===3){
+      const rg=document.createRange();
+      rg.setStart(cr.startContainer,cr.startOffset);
+      rg.setEnd(cr.startContainer,Math.min(cr.startContainer.length,cr.startOffset+1));
+      const rc=rg.getBoundingClientRect();
+      if(rc.height) top=rc.top-c.getBoundingClientRect().top+c.scrollTop;
+    }
+  }catch(e){}
+  if(top==null) top=el.getBoundingClientRect().top-c.getBoundingClientRect().top+c.scrollTop;
+  top=Math.max(0,Math.min(top,c.scrollHeight-h));
+  c.scrollTo({top:top,behavior:"smooth"});
 }
 $("pgPrev").onclick=()=>pageFlip(-1);
 $("pgNext").onclick=()=>pageFlip(1);
@@ -765,6 +889,11 @@ $("pgNext").onclick=()=>pageFlip(1);
 $("pgHome").onclick=()=>{ if(!curBook||!chapters[curChap]||$("pdfview").style.display!=="none")return; $("content").scrollTo({top:0,behavior:"smooth"}); };
 $("pgEnd").onclick=()=>{ if(!curBook||!chapters[curChap]||$("pdfview").style.display!=="none")return; const c=$("content"); c.scrollTo({top:c.scrollHeight,behavior:"smooth"}); };
 document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){                                           // ESC：先关翻译气泡，再退沉浸
+    if($("tranTip").style.display==="block"){ hideTran(); return; }
+    if(document.body.classList.contains("immersive")) setImmersive(false);
+    return;
+  }
   if(e.key!=="ArrowLeft"&&e.key!=="ArrowRight")return;
   const t=e.target;
   if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.isContentEditable))return;   // 输入框里不抢左右键
@@ -935,6 +1064,49 @@ $("btnQuit").onclick=async()=>{
   // 后端会关掉 Edge 窗口，这里不必再提示；万一窗口没关，给一句兜底
   setTimeout(()=>{ try{ document.body.innerHTML='<div style="text-align:center;padding:80px;font-family:Microsoft YaHei;font-size:18px;color:#9a98a8">已退出，可以关掉这个窗口了。</div>'; }catch(e){} }, 800);
 };
+// [demo] 全屏按钮 v2：正文沉浸视图——藏顶栏/书架/章节目录，只留阅读排＋正文；再点或 ESC 还原
+function setImmersive(on){
+  document.body.classList.toggle("immersive",on);
+  $("btnFull").textContent=on?"还原":"全屏";
+}
+$("btnFull").onclick=()=>setImmersive(!document.body.classList.contains("immersive"));
+
+// ---- [demo] v5.2 划词翻译：选中→浮「译」钮→点一下→气泡显示译文（只送选中的文字，≤500 字符） ----
+function hideTran(){ $("btnTran").style.display="none"; $("tranTip").style.display="none"; }
+function placeNear(el,rect){
+  const box=$("content"), wrap=box.parentElement.getBoundingClientRect();
+  const top=rect.bottom-wrap.top+box.scrollTop+6;
+  const left=Math.min(Math.max(rect.left-wrap.left,8),wrap.width-el.offsetWidth-8);
+  el.style.top=top+"px"; el.style.left=Math.max(left,8)+"px";
+}
+$("content").addEventListener("mouseup",e=>{
+  if(e.target.id==="btnTran") return;
+  setTimeout(()=>{                                  // 等选区稳定
+    const sel=window.getSelection();
+    const text=(sel?sel.toString():"").trim();
+    const btn=$("btnTran"),tip=$("tranTip");
+    tip.style.display="none";
+    if(!text||text.length>500||!sel.rangeCount){ btn.style.display="none"; return; }
+    const r=sel.getRangeAt(0).getBoundingClientRect();
+    if(!r.width){ btn.style.display="none"; return; }
+    btn.style.display="block";
+    placeNear(btn,{left:r.left,right:r.bottom,bottom:r.bottom});
+    btn.onclick=async()=>{
+      tip.innerHTML="<div class='t-src'>"+esc(text.slice(0,80))+(text.length>80?"…":"")+"</div>翻译中…";
+      tip.style.display="block"; placeNear(tip,{left:r.left,right:r.bottom,bottom:r.bottom});
+      try{
+        const res=await api("/api/translate",{text});
+        if(res.ok){ tip.innerHTML="<div class='t-src'>"+esc(text.slice(0,80))+(text.length>80?"…":"")
+          +"　<span style='color:var(--muted)'>（"+esc(res.detected||"?")+"）</span></div>"+esc(res.text); }
+        else{ tip.innerHTML="翻译没成功："+esc(res.error||"未知原因")+"，检查网络再试"; }
+      }catch(err){ tip.innerHTML="翻译没成功："+esc(err.message)+"，检查网络再试"; }
+      placeNear(tip,{left:r.left,right:r.bottom,bottom:r.bottom});
+    };
+  },0);
+});
+$("content").addEventListener("mousedown",e=>{
+  if(e.target.id!=="btnTran"&&e.target.id!=="tranTip") hideTran();
+});
 // ---- v5.1：PDF.js 本地渲染 —— canvas 换页瞬跳、缩放/双页跨翻页保持，失败回退内建阅读器 ----
 let pdfPath="", pdfPage=1, pdfPages=0, pdfDoc=null, pdfSpreadMode=false, pdfZoom="fit";
 let pdfRenderTask=null, pdfLoadSeq=0;

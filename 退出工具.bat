@@ -1,9 +1,9 @@
 @echo off
-chcp 65001 >nul
+chcp 936 >nul
 cd /d "%~dp0"
-title 阅见阅读器-退出
+title �ļ��Ķ���-�˳�
 if not exist "_port" (
-  echo 阅见阅读器当前没有在运行。
+  echo �ļ��Ķ�����ǰû�������С�
   timeout /t 2 >nul
   exit /b
 )
@@ -17,6 +17,6 @@ where pyw >nul 2>nul && (
   timeout /t 2 >nul
   exit /b
 )
-echo [阅见阅读器] 未检测到 Python，无法执行退出脚本。
-echo 请安装 Python（https://www.python.org/downloads/），或直接关窗口即可。
+echo [�ļ��Ķ���] δ��⵽ Python���޷�ִ���˳��ű���
+echo �밲װ Python��https://www.python.org/downloads/������ֱ�ӹش��ڼ��ɡ�
 pause

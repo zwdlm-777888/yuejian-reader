@@ -21,6 +21,7 @@ import zipfile
 import subprocess
 import webbrowser
 import urllib.request
+import urllib.parse
 import socket
 import shutil
 import time
@@ -182,6 +183,69 @@ def _force_dialog_front(stop_evt, timeout=180):
             stop_evt.wait(0.15)                    # 抢得够勤，弹窗一露头就被压到最前
     except Exception as ex:
         log_err("force_dialog_front", ex)
+
+
+def toggle_maximize():
+    """[demo] 全屏按钮：把本次打开的 Edge --app 窗口在「最大化 / 还原」间切换。
+    零依赖 ctypes 调 user32，复用置顶那套按进程找窗口的思路。
+    Edge --app 的窗口进程是浏览器子进程，不等于 EDGE_PROC 主进程，所以不能只按主 PID 找；
+    这里按「可见 + 标题匹配页面 title(阅见) + Chrome 窗口类」认领，认不到再退回前台窗口。
+    成功返回 {"ok":True,"maximized":bool}，失败返回 {"ok":False,"error":...}，不抛异常。"""
+    try:
+        import ctypes
+        from ctypes import wintypes
+        user32 = ctypes.windll.user32
+        HWnd = wintypes.HWND
+        WNDENUMPROC = ctypes.WINFUNCTYPE(wintypes.BOOL, HWnd, wintypes.LPARAM)
+        # 64 位下 HWND 是指针，必须显式声明，否则静默失败（与置顶那处同源的坑）
+        user32.EnumWindows.argtypes = [WNDENUMPROC, wintypes.LPARAM]
+        user32.EnumWindows.restype = wintypes.BOOL
+        user32.GetWindowTextLengthW.argtypes = [HWnd]
+        user32.GetWindowTextLengthW.restype = ctypes.c_int
+        user32.GetWindowTextW.argtypes = [HWnd, wintypes.LPWSTR, ctypes.c_int]
+        user32.GetWindowTextW.restype = ctypes.c_int
+        user32.GetClassNameW.argtypes = [HWnd, wintypes.LPWSTR, ctypes.c_int]
+        user32.GetClassNameW.restype = ctypes.c_int
+        user32.IsWindowVisible.argtypes = [HWnd]
+        user32.IsWindowVisible.restype = wintypes.BOOL
+        user32.IsZoomed.argtypes = [HWnd]
+        user32.IsZoomed.restype = wintypes.BOOL
+        user32.ShowWindow.argtypes = [HWnd, ctypes.c_int]
+        user32.ShowWindow.restype = wintypes.BOOL
+        user32.GetForegroundWindow.argtypes = []
+        user32.GetForegroundWindow.restype = HWnd
+
+        SW_RESTORE, SW_MAXIMIZE = 9, 3
+        found = []
+
+        def _enum_cb(hwnd, _lparam):
+            if not user32.IsWindowVisible(hwnd):
+                return True
+            n = user32.GetWindowTextLengthW(hwnd)
+            if n <= 0:
+                return True
+            tbuf = ctypes.create_unicode_buffer(n + 1)
+            user32.GetWindowTextW(hwnd, tbuf, n + 1)
+            title = tbuf.value.strip()
+            cbuf = ctypes.create_unicode_buffer(256)
+            user32.GetClassNameW(hwnd, cbuf, 256)
+            cls = cbuf.value
+            # 认领规则：Chrome 系窗口类 + 标题是页面 title「阅见」（允许带后缀）
+            if cls.startswith("Chrome_WidgetWin") and (title == "阅见" or title.startswith("阅见")):
+                found.append(hwnd)
+                return False
+            return True
+
+        user32.EnumWindows(WNDENUMPROC(_enum_cb), 0)
+        hwnd = found[0] if found else user32.GetForegroundWindow()
+        if not hwnd:
+            return {"ok": False, "error": "没找到可最大化的窗口"}
+        was_max = bool(user32.IsZoomed(hwnd))
+        user32.ShowWindow(hwnd, SW_RESTORE if was_max else SW_MAXIMIZE)
+        return {"ok": True, "maximized": not was_max}
+    except Exception as ex:
+        log_err("toggle_maximize", ex)
+        return {"ok": False, "error": "%s: %s" % (type(ex).__name__, str(ex)[:120])}
 
 
 def _pick_dialog_worker():
@@ -487,6 +551,34 @@ def voice_check():
         return {"ok": True, "voice": "zh-CN-XiaoxiaoNeural"}
     except Exception as ex:
         return {"ok": False, "reason": "%s: %s" % (type(ex).__name__, str(ex)[:160])}
+
+
+# ========== v5.2 划词翻译（腾讯交互翻译 TranSmart 免费接口，无密钥、国内直连；只翻译选中的文字） ==========
+def translate_text(text):
+    """把选中的文字翻成中文。上限 500 字符，超了截断；失败抛异常给路由兜底。"""
+    text = (text or "").strip()[:500]
+    if not text:
+        return {"ok": False, "error": "没有选中文字"}
+    import uuid
+    body = {
+        "header": {"fn": "auto_translation", "client_key":
+                   "browser-chrome-121.0.0-Windows_10-%s-%d" % (uuid.uuid4(), int(time.time() * 1000)),
+                   "session": "", "user": ""},
+        "type": "plain", "model_category": "normal", "text_domain": "",
+        "source": {"lang": "auto", "text_list": [text]},
+        "target": {"lang": "zh"},   # 中文书场景固定翻成中文
+    }
+    req = urllib.request.Request("https://transmart.qq.com/api/imt",
+        data=json.dumps(body).encode(),
+        headers={"Content-Type": "application/json",
+                 "Origin": "https://transmart.qq.com",
+                 "Referer": "https://transmart.qq.com/",
+                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+    resp = json.loads(urllib.request.urlopen(req, timeout=15).read().decode("utf-8"))
+    out = resp.get("auto_translation")
+    if not out:
+        raise RuntimeError(str(resp.get("message") or resp)[:120])
+    return {"ok": True, "text": out[0], "detected": resp.get("src_lang", "")}
 
 
 def synth_chapter(text, chapter_key, rate):
@@ -875,12 +967,19 @@ class Handler(BaseHTTPRequestHandler):
         elif u.path == "/api/state":
             self._json(load_state())
         elif u.path == "/api/readme":
-            # 首开引导：把工具自带的 README.md 交给正文区当"使用说明"
-            try:
-                with io.open(os.path.join(BASE, "README.md"), "r", encoding="utf-8") as f:
-                    self._json({"ok": True, "text": f.read()})
-            except Exception as ex:
-                self._json({"ok": False, "error": str(ex)})
+            # 首开引导：优先用专门写的《使用说明-首启.md》（只讲首屏就能试的功能），
+            # 没有再退回 README.md（那是给仓库访客看的，HTML 块和打赏码在正文区渲染不了）
+            for name in ("使用说明-首启.md", "README.md"):
+                p = os.path.join(BASE, name)
+                if os.path.isfile(p):
+                    try:
+                        with io.open(p, "r", encoding="utf-8") as f:
+                            self._json({"ok": True, "text": f.read()})
+                    except Exception as ex:
+                        self._json({"ok": False, "error": str(ex)})
+                    break
+            else:
+                self._json({"ok": False, "error": "没有找到说明文件"})
         else:
             self._json({"error": "not found"}, 404)
 
@@ -924,6 +1023,12 @@ class Handler(BaseHTTPRequestHandler):
                 chapters = build_chapters(text) if text else []
                 self._json({"ok": True, "kind": kind, "chars": len(text),
                             "chapters": chapters[:400]})
+            elif u.path == "/api/translate":
+                # v5.2 划词翻译：只送选中的文字（上限 500 字符），明确点「译」才触发
+                try:
+                    self._json(translate_text(data.get("text", "")))
+                except Exception as ex:
+                    self._json({"ok": False, "error": "%s: %s" % (type(ex).__name__, str(ex)[:160])})
             elif u.path == "/api/tts":
                 text = data.get("text", "")
                 key = data.get("key", "x")
@@ -1002,6 +1107,9 @@ class Handler(BaseHTTPRequestHandler):
                 self._json({"ok": save_state({k: data.get(k) for k in
                             ("last_path", "last_book", "last_chapter", "shelf_w", "chap_w",
                              "theme", "paper", "paper_dir", "strip_blank", "text_dim", "body_font")})})
+            elif u.path == "/api/maximize":
+                # [demo] 全屏按钮：切换本次应用窗口的最大化/还原
+                self._json(toggle_maximize())
             elif u.path == "/api/quit":
                 # 先回包，再从另起的线程彻底退场（关窗口+清缓存+关服务），避免把自己掐断
                 self._json({"ok": True})

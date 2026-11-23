@@ -1,0 +1,15 @@
+# 运行产物，不进仓库
+音频缓存/
+state.json
+_port
+__pycache__/
+*.pyc
+
+# 过程备份，不进仓库
+*.bak
+*.bak-*
+*.lnk
+
+# 本机测试图
+部位图.png
+paper_compare.png
