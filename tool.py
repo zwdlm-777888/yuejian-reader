@@ -1104,9 +1104,30 @@ class Handler(BaseHTTPRequestHandler):
             elif u.path == "/api/state":
                 # 白名单：只落这些字段。v5.1 新增 strip_blank/text_dim/body_font/paper_dir
                 # （paper_dir 是补漏——v5.1 前端写了但没进白名单，"记住上次选图目录"一直没生效）
-                self._json({"ok": save_state({k: data.get(k) for k in
-                            ("last_path", "last_book", "last_chapter", "shelf_w", "chap_w",
-                             "theme", "paper", "paper_dir", "strip_blank", "text_dim", "body_font")})})
+                d = {k: data.get(k) for k in
+                     ("last_path", "last_book", "last_chapter", "shelf_w", "chap_w",
+                      "theme", "paper", "paper_dir", "strip_blank", "text_dim", "body_font",
+                      "font_level",  # v5.3：字号档位（正文 px 值），点字号/一键恢复时前端落盘
+                      "body_bold")}  # v5.3：正文加粗开关（全局），点加粗/一键恢复时前端落盘
+                # v5.3：窗口尺寸由独立接口 /api/window_size 写入，这里整体覆盖时要保留下来，
+                # 否则用户拖完窗口再切主题/分栏，刚存下的尺寸就被冲掉。
+                old = load_state()
+                for k in ("win_w", "win_h"):
+                    if k in old:
+                        d[k] = old[k]
+                self._json({"ok": save_state(d)})
+            elif u.path == "/api/window_size":
+                # v5.3 窗口尺寸记忆：单独接口、合并写入（不能走 /api/state 的白名单整体覆盖，
+                # 否则上报窗口尺寸会把书架路径/进度全冲掉）。只认合理范围的整数像素。
+                try:
+                    w = int(data.get("w", 0)); h = int(data.get("h", 0))
+                    if not (600 <= w <= 7680 and 400 <= h <= 4320):
+                        raise ValueError("尺寸超范围")
+                    d = load_state()
+                    d["win_w"] = w; d["win_h"] = h
+                    self._json({"ok": save_state(d)})
+                except Exception as ex:
+                    self._json({"ok": False, "error": "%s: %s" % (type(ex).__name__, str(ex)[:120])})
             elif u.path == "/api/maximize":
                 # [demo] 全屏按钮：切换本次应用窗口的最大化/还原
                 self._json(toggle_maximize())
@@ -1185,6 +1206,16 @@ def open_window(url):
         return
     edge = EDGE if os.path.exists(EDGE) else (EDGE2 if os.path.exists(EDGE2) else None)
     if edge:
+        # v5.3 窗口尺寸记忆：读上次保存的外框尺寸，异常/首次启动回退 1280x860。
+        # 范围校验挡住手改 state.json 造成的离谱值（太小没法学、太大开不了）。
+        st = load_state()
+        try:
+            ww = int(st.get("win_w", 0)); wh = int(st.get("win_h", 0))
+            if not (600 <= ww <= 7680 and 400 <= wh <= 4320):
+                raise ValueError("尺寸超范围")
+        except Exception:
+            ww, wh = 1280, 860
+        size_arg = "--window-size=%d,%d" % (ww, wh)
         # --app：独立窗口、无地址栏/工具栏/标签；--user-data-dir 用独立配置避免串号
         profile = os.path.join(BASE, "_edge_profile")
         try:
@@ -1197,7 +1228,7 @@ def open_window(url):
                 with open(first_run, "w"):
                     pass
             EDGE_PROC[0] = subprocess.Popen([edge, "--app=" + url,
-                                             "--window-size=1280,860",
+                                             size_arg,
                                              "--user-data-dir=" + profile,
                                              "--no-first-run",
                                              "--no-default-browser-check",
