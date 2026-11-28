@@ -180,7 +180,9 @@
   .content mark{background:var(--mark);color:inherit;padding:0;border-radius:2px}
   .content mark.active{background:var(--mark-active);color:#fff}
   .content h3{font-size:18px;margin:0 0 16px;padding-bottom:12px;border-bottom:2px solid var(--line)}
-  .content .body{white-space:pre-wrap;font-size:16px;line-height:2.1;color:var(--ink);letter-spacing:.3px;max-width:900px;filter:brightness(var(--text-bright,1));font-family:var(--body-font,"Microsoft YaHei","PingFang SC",system-ui,sans-serif)}
+  /* v5.3：正文行宽跟随正文框宽度。原 max-width:900px 写死，窗口拉大/字号变化行宽都不动。
+     改为 100% 后：拖窗口改宽度 → 行宽实时跟随；字号变大 → 每行字数变少（阅读器正常排版）。 */
+  .content .body{white-space:pre-wrap;font-size:16px;line-height:2.1;color:var(--ink);letter-spacing:.3px;max-width:100%;box-sizing:border-box;filter:brightness(var(--text-bright,1));font-weight:var(--body-bold,400);font-family:var(--body-font,"Microsoft YaHei","PingFang SC",system-ui,sans-serif)}
   /* 滚动条：细、低调，跟主题走，不刺眼 */
   ::-webkit-scrollbar{width:10px;height:10px}
   ::-webkit-scrollbar-track{background:transparent}
@@ -189,7 +191,7 @@
   ::-webkit-scrollbar-corner{background:transparent}
   /* v5.1 任务3：字号五档改为行内 px（档位表 FONT_SIZES），原三档 class 规则废弃 */
   /* 首开引导页（README 渲染成正文） */
-  .guideBody{max-width:900px;font-size:15px;line-height:1.9;white-space:normal;filter:brightness(var(--text-bright,1));font-family:var(--body-font,"Microsoft YaHei","PingFang SC",system-ui,sans-serif)}
+  .guideBody{max-width:100%;box-sizing:border-box;font-size:15px;line-height:1.9;white-space:normal;filter:brightness(var(--text-bright,1));font-family:var(--body-font,"Microsoft YaHei","PingFang SC",system-ui,sans-serif)}
   .guideBody .g-h2{font-size:16px;font-weight:600;margin:22px 0 10px;color:var(--brand-d);border-bottom:1px solid var(--line);padding-bottom:6px}
   .guideBody .g-h3{font-size:14px;font-weight:600;margin:16px 0 8px}
   .guideBody .g-p{margin:8px 0}
@@ -234,7 +236,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1 id="topbar">阅见<span class="ver">v5.2</span><span class="pill">本地运行 · 图片不朗读</span><span id="voiceState" class="voice-state" style="font-weight:400"></span><span class="sp" style="flex:1"></span><b class="ctl-label">主题</b><select id="theme" class="mini" title="界面主题">
+  <h1 id="topbar">阅见<span class="ver">v5.3</span><span class="pill">本地运行 · 图片不朗读</span><span id="voiceState" class="voice-state" style="font-weight:400"></span><span class="sp" style="flex:1"></span><b class="ctl-label">主题</b><select id="theme" class="mini" title="界面主题">
       <option value="">青笺缓阅（护眼）</option>
       <option value="tavern">墨窗夜读</option>
       <option value="sillytavern">灯檐阅卷</option>      <option value="parchment">故纸余温</option>
@@ -244,7 +246,7 @@
       <option value="qingluan">青峦染绢</option>
     </select><button id="btnPaper" class="mini" title="给正文选一张底纹图片（按当前主题记忆）">底纹</button><input id="paperDim" class="mini" type="range" min="0" max="90" value="35" title="底纹遮罩浓度：压住图片让文字可读" style="width:58px;vertical-align:middle"><button id="btnClearPaper" class="mini" title="清除当前主题的底纹图片" style="display:none">×</button><span style="color:var(--split)">│</span><b class="ctl-label">字体</b><select id="bodyFont" class="mini" title="正文字体（按当前主题记忆，缺字自动回退）">
       <option value="">默认</option><option value="song">宋体</option><option value="kai">楷体</option><option value="fang">仿宋</option><option value="hei">黑体</option>
-    </select><button class="mini" id="btnFont" title="切换字号（正文五档，默认 15px）">字号</button><input id="textDim" class="mini" type="range" min="55" max="145" value="100" title="正文文字明暗：往左变暗、往右变亮（按当前主题记忆）" style="width:58px;vertical-align:middle"><button id="btnBlank" class="mini" title="TXT 加载时压缩多余空行（全局开关）">去空行：关</button><button class="mini" id="btnResetView" title="一键恢复：主题、字体、字号回默认，清除底纹，两根滑杆归中">一键恢复</button><button id="btnQuit" class="mini" title="立即退出并清空音频缓存（点 ✕ 关窗则保留缓存，下次朗读秒开）">清理并退出</button></h1>
+    </select><button class="mini" id="btnFont" title="切换字号（正文六档 15/17/19/21/23/25px，默认 15px）">字号</button><button class="mini" id="btnBold" title="正文加粗：全局开关，重启后保持">加粗：关</button><input id="textDim" class="mini" type="range" min="55" max="145" value="100" title="正文文字明暗：往左变暗、往右变亮（按当前主题记忆）" style="width:58px;vertical-align:middle"><button id="btnBlank" class="mini" title="TXT 加载时压缩多余空行（全局开关）">去空行：关</button><button class="mini" id="btnResetView" title="一键恢复：主题、字体、字号回默认，清除底纹，两根滑杆归中">一键恢复</button><button id="btnQuit" class="mini" title="立即退出并清空音频缓存（点 ✕ 关窗则保留缓存，下次朗读秒开）">清理并退出</button></h1>
   <div class="row" id="msgRow" style="align-items:flex-start">
     <div id="scanMsg" class="msg" style="flex:1;margin-top:0;min-width:0"></div>
     <div id="ttsMsg" class="msg" style="flex:1;margin-top:0;min-width:0"></div>
@@ -316,9 +318,9 @@
 <script>
 const $ = id => document.getElementById(id);
 let books = [], curBook = null, chapters = [], curChap = 0;
-// v5.1 任务3：字号三档扩五档，直接写 px；默认 15px（索引 1）
-const FONT_SIZES=[13,15,17,19,22];
-const DEFAULT_FONT_LEVEL=1;
+// v5.1 任务3：字号三档扩五档，直接写 px；v5.3 扩六档 15/17/19/21/23/25，默认 15px（索引 0）
+const FONT_SIZES=[15,17,19,21,23,25];
+const DEFAULT_FONT_LEVEL=0;  // v5.3：六档 15/17/19/21/23/25，默认 15px（档位表首位）
 let fontLevel = DEFAULT_FONT_LEVEL;
 
 // 收起/展开书架：开关按钮在栏头最左，不会被窄栏裁掉；收起后左缘留「»」重开按钮
@@ -504,7 +506,20 @@ $("btnFont").onclick=()=>{
   fontLevel=(fontLevel+1)%FONT_SIZES.length;
   const size=FONT_SIZES[fontLevel];
   setFont(size);
+  storeState({font_level:size});  // v5.3：字号档位落盘，启动时恢复上次设定
   if(!document.getElementById("bodyText")) msg($("scanMsg"),"字号已设为 "+size+"px，打开章节后生效。","ok");
+};
+// v5.3 加粗开关：全局开关（与字号同层），走 CSS 变量控制正文 font-weight
+function setBold(on){
+  $("btnBold").textContent="加粗："+(on?"开":"关");
+  const root=document.documentElement;
+  if(on) root.style.setProperty("--body-bold","700");
+  else root.style.removeProperty("--body-bold");
+}
+$("btnBold").onclick=()=>{
+  const on=!(savedState.body_bold);
+  setBold(on);
+  storeState({body_bold:on});
 };
 setFont(FONT_SIZES[fontLevel]);
 
@@ -514,9 +529,10 @@ $("btnResetView").onclick=()=>{
   // 只清「默认主题」名下的字体/明暗记忆，别把用户在其他主题里存的偏好一起抹掉
   const f=Object.assign({},savedState.body_font||{}); delete f[""];
   const td=Object.assign({},savedState.text_dim||{}); delete td[""];
-  storeState({theme:"", body_font:f, text_dim:td, paper:{}});  // 底纹全清：所有主题的底纹图一并抹掉，回到干净初始
+  storeState({theme:"", body_font:f, text_dim:td, paper:{}, font_level:FONT_SIZES[DEFAULT_FONT_LEVEL], body_bold:false});  // 底纹全清：所有主题的底纹图一并抹掉，回到干净初始；字号/加粗也落回默认
   applyTheme("");
   fontLevel=DEFAULT_FONT_LEVEL; setFont(FONT_SIZES[fontLevel]);  // 字号回默认 15px
+  setBold(false);  // 加粗回默认关闭
   // 两根滑杆归正中：底纹遮罩量程 0~90 → 45，正文明暗量程 55~145 → 100
   $("paperDim").value=45;
   $("textDim").value=100;
@@ -578,6 +594,13 @@ function hideAudio(){
     savedState = await api("/api/state",null,5000);
     // 恢复主题（默认豆沙绿也走 applyTheme，保证「清理并退出」的补色按钮着色）
     applyTheme(savedState.theme||"");
+    // v5.3：恢复上次字号档位（存的是 px 值，反查档位下标；异常值不认、回默认 15px）
+    if(savedState.font_level){
+      const i=FONT_SIZES.indexOf(+savedState.font_level);
+      if(i>=0){ fontLevel=i; setFont(FONT_SIZES[i]); }
+    }
+    // v5.3：恢复加粗开关（全局）
+    setBold(!!savedState.body_bold);
     // 首开引导：从没加载过书架（真·第一次用）时，把自带的 README 渲染成"使用说明"摊在正文区
     if(!savedState.last_path){
       try{
@@ -605,6 +628,19 @@ function hideAudio(){
     document.querySelector(".wrap").prepend(box);
   }
 })();
+
+// v5.3 窗口尺寸记忆：拖动窗口边缘改大小后，防抖 600ms 把外框尺寸写进 state.json，
+// 下次启动 tool.py 读它拼 --window-size。用 outerWidth/outerHeight 是因为它对应整个
+// 应用窗口（含边框），跟 --window-size 同一个量纲；innerWidth 是内容区会偏小。
+let _winSizeTimer=null;
+window.addEventListener("resize",()=>{
+  clearTimeout(_winSizeTimer);
+  _winSizeTimer=setTimeout(()=>{
+    const w=Math.round(window.outerWidth), h=Math.round(window.outerHeight);
+    if(w>0 && h>0) fetch("/api/window_size",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({w,h})}).catch(()=>{});
+  },600);
+});
 
 // 心跳：每20秒 ping 一次后台。窗口一关心跳就断，服务120秒后自动退场并清理缓存。
 // 间隔放大是因为 Edge 会把最小化窗口的定时器降到一分钟一次，太密会被误判。
